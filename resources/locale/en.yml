@@ -1,0 +1,17 @@
+ernestdefoe-roleplay:
+  forum:
+    my_characters: My Characters
+    characters_intro: Create the characters you role-play as. You can post in-character anywhere role-play is allowed.
+    new_character: New character
+    edit_character: Edit character
+    name_placeholder: Character name
+    accent: Accent colour
+    bio_placeholder: A short bio (optional)
+    save: Save
+    create: Create character
+    cancel: Cancel
+    no_characters: You haven’t created any characters yet.
+    post_count: "{count, plural, =0{No posts} one{# post} other{# posts}} in-character"
+    edit: Edit
+    archive: Archive
+    confirm_archive: "Archive {name}? Their in-character posts will keep their identity."
