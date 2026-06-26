@@ -35,7 +35,15 @@ return [
         ->get('/rp/cards', 'rp.cards.list', Api\ListCardsController::class)
         ->post('/rp/cards', 'rp.cards.create', Api\SaveCardController::class)
         ->patch('/rp/cards/{id}', 'rp.cards.update', Api\SaveCardController::class)
-        ->delete('/rp/cards/{id}', 'rp.cards.delete', Api\DeleteCardController::class),
+        ->delete('/rp/cards/{id}', 'rp.cards.delete', Api\DeleteCardController::class)
+        // Tactical encounters (combat runs inside a discussion). Static segments
+        // (combatants/play) win over the {action} placeholder in FastRoute.
+        ->get('/rp/encounters', 'rp.enc.show', Api\ShowEncounterController::class)
+        ->post('/rp/encounters', 'rp.enc.create', Api\CreateEncounterController::class)
+        ->post('/rp/encounters/{id}/combatants', 'rp.enc.add-combatant', Api\AddCombatantController::class)
+        ->delete('/rp/combatants/{id}', 'rp.combatant.remove', Api\RemoveCombatantController::class)
+        ->post('/rp/encounters/{id}/play', 'rp.enc.play', Api\PlayCardController::class)
+        ->post('/rp/encounters/{id}/{action}', 'rp.enc.action', Api\EncounterActionController::class),
 
     // Post-in-character: link a post to the character it was authored as.
     (new Extend\Model(Post::class))
