@@ -50,6 +50,50 @@ export interface RpCard {
   mine: boolean;
 }
 
+export interface RpCombatant {
+  id: number;
+  name: string;
+  team: 'party' | 'foe';
+  maxHp: number;
+  hp: number;
+  initiative: number;
+  isDown: boolean;
+  characterId: number | null;
+  cardId: number | null;
+  meta: { defense?: number; agility?: number };
+  character: { name: string; color: string | null; avatarUrl: string | null; userId: number } | null;
+}
+
+export interface RpEncounter {
+  id: number;
+  discussionId: number;
+  gmUserId: number;
+  isGm: boolean;
+  name: string | null;
+  status: 'setup' | 'active' | 'ended';
+  round: number;
+  turnIndex: number;
+  order: number[];
+  activeId: number | null;
+  combatants: RpCombatant[];
+}
+
+export interface RpPlayResult {
+  actor: string;
+  card: string;
+  icon: string | null;
+  type: string;
+  target: string | null;
+  attack: { expr: string; dice: number[]; mod: number; total: number } | null;
+  hit: boolean;
+  crit: boolean;
+  damage: { expr: string; dice: number[]; mod: number; total: number } | null;
+  amount: number;
+  targetHp: number | null;
+  targetMaxHp: number | null;
+  down: boolean;
+}
+
 export const RpApi = {
   listCharacters: (): Promise<RpCharacter[]> => req('GET', '/rp/characters').then((r) => r.data),
   saveCharacter: (data: Partial<RpCharacter>, id?: number): Promise<RpCharacter> =>
@@ -60,4 +104,16 @@ export const RpApi = {
   saveCard: (data: Partial<RpCard>, id?: number): Promise<RpCard> =>
     req(id ? 'PATCH' : 'POST', '/rp/cards' + (id ? '/' + id : ''), data).then((r) => r.data),
   deleteCard: (id: number): Promise<void> => req('DELETE', '/rp/cards/' + id),
+
+  showEncounter: (discussionId: number): Promise<RpEncounter | null> =>
+    req('GET', '/rp/encounters?discussionId=' + discussionId).then((r) => r.data),
+  createEncounter: (discussionId: number, name?: string): Promise<RpEncounter> =>
+    req('POST', '/rp/encounters', { discussionId, name }).then((r) => r.data),
+  addCombatant: (encId: number, data: any): Promise<RpCombatant> =>
+    req('POST', '/rp/encounters/' + encId + '/combatants', data).then((r) => r.data),
+  removeCombatant: (id: number): Promise<void> => req('DELETE', '/rp/combatants/' + id),
+  encounterAction: (encId: number, action: 'start' | 'next' | 'end'): Promise<RpEncounter> =>
+    req('POST', '/rp/encounters/' + encId + '/' + action).then((r) => r.data),
+  playCard: (encId: number, data: { cardId: number; actorCombatantId: number; targetCombatantId?: number }): Promise<{ result: RpPlayResult; encounter: RpEncounter }> =>
+    req('POST', '/rp/encounters/' + encId + '/play', data).then((r) => r.data),
 };

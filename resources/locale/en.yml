@@ -44,3 +44,26 @@ ernestdefoe-roleplay:
     shared: Shared
     delete: Delete
     confirm_delete_card: "Delete the card “{name}”? This can’t be undone."
+
+    # Combat tracker
+    encounter: Encounter
+    start_encounter: Start an encounter
+    round_n: "Round {n}"
+    status_setup: Setup
+    status_active: Active
+    status_ended: Ended
+    combatant_name: Combatant name
+    team_party: Party
+    team_foe: Foe
+    add_combatant: Add combatant
+    start_combat: Roll initiative & start
+    next_turn: Next turn
+    end_encounter: End encounter
+    confirm_end_encounter: End this encounter for everyone?
+    your_move: "Your move — {name}"
+    pick_card: Choose a card…
+    no_target: No target
+    play_card: Play card
+    down: Down
+    miss: miss
+    crit: CRIT!

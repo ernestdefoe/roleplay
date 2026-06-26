@@ -1,9 +1,11 @@
 import app from 'flarum/forum/app';
 import { extend } from 'flarum/common/extend';
 import SessionDropdown from 'flarum/forum/components/SessionDropdown';
+import DiscussionPage from 'flarum/forum/components/DiscussionPage';
 import LinkButton from 'flarum/common/components/LinkButton';
 import CharactersPage from './components/CharactersPage';
 import DeckPage from './components/DeckPage';
+import CombatTracker from './components/CombatTracker';
 import inCharacter from './inCharacter';
 import composerPicker from './composerPicker';
 
@@ -30,6 +32,13 @@ app.initializers.add('ernestdefoe-roleplay', () => {
       ),
       49
     );
+  });
+
+  // The combat tracker lives at the top of a discussion's sidebar.
+  extend(DiscussionPage.prototype, 'sidebarItems', function (items: any) {
+    const discussion = (this as any).discussion;
+    if (!discussion) return;
+    items.add('rp-combat', CombatTracker.component({ discussionId: Number(discussion.id()) }), 100);
   });
 
   inCharacter();
