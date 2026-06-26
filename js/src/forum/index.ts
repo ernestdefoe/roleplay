@@ -3,8 +3,8 @@ import { extend } from 'flarum/common/extend';
 import SessionDropdown from 'flarum/forum/components/SessionDropdown';
 import LinkButton from 'flarum/common/components/LinkButton';
 import CharactersPage from './components/CharactersPage';
-
-declare const m: import('mithril').Static;
+import inCharacter from './inCharacter';
+import composerPicker from './composerPicker';
 
 app.initializers.add('ernestdefoe-roleplay', () => {
   app.routes['rp.characters'] = { path: '/characters', component: CharactersPage } as any;
@@ -21,4 +21,7 @@ app.initializers.add('ernestdefoe-roleplay', () => {
       50
     );
   });
+
+  inCharacter();
+  composerPicker();
 });
