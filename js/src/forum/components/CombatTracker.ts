@@ -21,11 +21,28 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
   log: RpPlayResult[] = [];
   add = { name: '', team: 'party' as 'party' | 'foe', hp: '10', defense: '' };
   play = { cardId: 0, targetId: 0 };
+  private pollTimer: any = null;
 
   oninit(vnode: any) {
     super.oninit(vnode);
     this.refresh(true);
     if (app.session.user) RpApi.listCards().then((c) => { this.cards = c; m.redraw(); }).catch(() => {});
+
+    // Poll so the whole table sees plays/turns/HP without a manual refresh. A
+    // stopgap until Phase 3c's EncounterTouched broadcast; skips while the tab is
+    // hidden or the viewer is mid-action, and only redraws on an actual change.
+    this.pollTimer = setInterval(() => {
+      if (document.hidden || this.busy) return;
+      RpApi.showEncounter(this.discussionId)
+        .then((e) => {
+          if (JSON.stringify(e) !== JSON.stringify(this.enc)) { this.enc = e; m.redraw(); }
+        })
+        .catch(() => {});
+    }, 5000);
+  }
+
+  onremove() {
+    if (this.pollTimer) clearInterval(this.pollTimer);
   }
 
   get discussionId(): number {
