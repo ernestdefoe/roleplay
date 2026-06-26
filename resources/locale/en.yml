@@ -19,3 +19,28 @@ ernestdefoe-roleplay:
     played_by: "Played by {user}"
     as_yourself: Yourself
     posting_as: Post as a character
+
+    # Deck / card builder
+    my_deck: My Deck
+    deck_intro: Build the cards your characters use in tactical encounters — abilities, items, spells and enemies, each with dice formulas the game engine rolls.
+    new_card: New card
+    edit_card: Edit card
+    create_card: Create card
+    card_name_placeholder: Card name
+    card_desc_placeholder: What does this card do? (optional)
+    icon_label: Icon (Font Awesome class)
+    cost_label: Cost
+    attack_label: Attack roll
+    damage_label: Damage roll
+    defense_label: Defense
+    hp_label: HP
+    share_card: Share this card into everyone’s deck
+    type_ability: Ability
+    type_item: Item
+    type_spell: Spell
+    type_enemy: Enemy
+    no_cards: You haven’t built any cards yet.
+    shared_cards: Shared cards
+    shared: Shared
+    delete: Delete
+    confirm_delete_card: "Delete the card “{name}”? This can’t be undone."

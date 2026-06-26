@@ -19,7 +19,8 @@ return [
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
         ->css(__DIR__ . '/less/forum.less')
-        ->route('/characters', 'rp.characters'),
+        ->route('/characters', 'rp.characters')
+        ->route('/deck', 'rp.deck'),
 
     (new Extend\Frontend('admin'))
         ->js(__DIR__ . '/js/dist/admin.js'),
@@ -30,7 +31,11 @@ return [
         ->get('/rp/characters', 'rp.characters.list', Api\ListCharactersController::class)
         ->post('/rp/characters', 'rp.characters.create', Api\SaveCharacterController::class)
         ->patch('/rp/characters/{id}', 'rp.characters.update', Api\SaveCharacterController::class)
-        ->delete('/rp/characters/{id}', 'rp.characters.delete', Api\DeleteCharacterController::class),
+        ->delete('/rp/characters/{id}', 'rp.characters.delete', Api\DeleteCharacterController::class)
+        ->get('/rp/cards', 'rp.cards.list', Api\ListCardsController::class)
+        ->post('/rp/cards', 'rp.cards.create', Api\SaveCardController::class)
+        ->patch('/rp/cards/{id}', 'rp.cards.update', Api\SaveCardController::class)
+        ->delete('/rp/cards/{id}', 'rp.cards.delete', Api\DeleteCardController::class),
 
     // Post-in-character: link a post to the character it was authored as.
     (new Extend\Model(Post::class))

@@ -44,3 +44,56 @@
 .RpComposerPicker .Select-input { height: 32px; padding: 0 24px 0 8px; font-size: 13px; }
 .RpPostUser { display: inline-flex; align-items: baseline; gap: 6px; }
 .RpPostUser-by { font-weight: 400; font-size: 12px; color: var(--muted-color); }
+
+/* ── Deck / card builder ────────────────────────────────────────── */
+.RpForm-grow { flex: 1; margin-bottom: 0 !important; }
+.RpForm-field { display: flex; flex-direction: column; gap: 4px; flex: 1; font-weight: 600; font-size: 13px; }
+.RpForm-field .FormControl { margin-bottom: 0; }
+.RpForm-check { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-weight: 600; }
+.RpDeck-form .Select { min-width: 130px; }
+.RpDeck-heading { margin: 26px 0 12px; font-size: 15px; font-weight: 800; color: var(--muted-color); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.RpDeck-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.RpTile {
+  --rp-accent: #7c3aed;
+  position: relative;
+  background: var(--body-bg);
+  border: 1px solid var(--control-bg, rgba(0, 0, 0, 0.08));
+  border-top: 4px solid var(--rp-accent);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.RpTile:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); }
+.RpTile[data-type='ability'] { --rp-accent: #7c3aed; }
+.RpTile[data-type='item'] { --rp-accent: #0d9488; }
+.RpTile[data-type='spell'] { --rp-accent: #2563eb; }
+.RpTile[data-type='enemy'] { --rp-accent: #dc2626; }
+
+.RpTile-head { display: flex; align-items: flex-start; justify-content: space-between; }
+.RpTile-icon { font-size: 30px; color: var(--rp-accent); }
+.RpTile-cost {
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+  background: var(--rp-accent); color: #fff; font-weight: 800; font-size: 12px;
+  display: inline-grid; place-items: center;
+}
+.RpTile-name { font-weight: 800; font-size: 15px; line-height: 1.2; }
+.RpTile-type {
+  align-self: flex-start; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--rp-accent); background: color-mix(in srgb, var(--rp-accent) 14%, transparent);
+  padding: 1px 8px; border-radius: 999px;
+}
+.RpTile-desc { font-size: 12px; color: var(--muted-color); line-height: 1.35; }
+.RpTile-stats { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: auto; padding-top: 6px; }
+.RpTile-stat { font-size: 12px; font-weight: 600; }
+.RpTile-stat .icon { color: var(--muted-color); margin-right: 2px; }
+.RpTile-actions { position: absolute; top: 8px; right: 8px; display: none; gap: 2px; }
+.RpTile:hover .RpTile-actions { display: flex; }
+.RpTile-actions .Button { background: var(--body-bg); }
+.RpTile-shared { font-size: 11px; color: var(--muted-color); font-style: italic; }

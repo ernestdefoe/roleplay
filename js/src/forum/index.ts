@@ -3,13 +3,15 @@ import { extend } from 'flarum/common/extend';
 import SessionDropdown from 'flarum/forum/components/SessionDropdown';
 import LinkButton from 'flarum/common/components/LinkButton';
 import CharactersPage from './components/CharactersPage';
+import DeckPage from './components/DeckPage';
 import inCharacter from './inCharacter';
 import composerPicker from './composerPicker';
 
 app.initializers.add('ernestdefoe-roleplay', () => {
   app.routes['rp.characters'] = { path: '/characters', component: CharactersPage } as any;
+  app.routes['rp.deck'] = { path: '/deck', component: DeckPage } as any;
 
-  // "My Characters" entry in the account dropdown.
+  // "My Characters" + "My Deck" entries in the account dropdown.
   extend(SessionDropdown.prototype, 'items', function (items: any) {
     if (!app.session.user) return;
     items.add(
@@ -19,6 +21,14 @@ app.initializers.add('ernestdefoe-roleplay', () => {
         app.translator.trans('ernestdefoe-roleplay.forum.my_characters')
       ),
       50
+    );
+    items.add(
+      'rp-deck',
+      LinkButton.component(
+        { href: app.route('rp.deck'), icon: 'fas fa-layer-group' },
+        app.translator.trans('ernestdefoe-roleplay.forum.my_deck')
+      ),
+      49
     );
   });
 
