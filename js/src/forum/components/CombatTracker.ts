@@ -2,7 +2,7 @@ import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
-import { RpApi, RpEncounter, RpCombatant, RpCard, RpPlayResult } from '../api';
+import { RpApi, RpEncounter, RpCombatant, RpCard, RpCharacter, RpPlayResult } from '../api';
 
 declare const m: import('mithril').Static;
 
@@ -18,15 +18,21 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
   busy = false;
   enc: RpEncounter | null = null;
   cards: RpCard[] = [];
+  characters: RpCharacter[] = [];
   log: RpPlayResult[] = [];
   add = { name: '', team: 'party' as 'party' | 'foe', hp: '10', defense: '' };
   play = { cardId: 0, targetId: 0 };
+  joinCharId = 0;
+  spawnCardId = 0;
   private pollTimer: any = null;
 
   oninit(vnode: any) {
     super.oninit(vnode);
     this.refresh(true);
-    if (app.session.user) RpApi.listCards().then((c) => { this.cards = c; m.redraw(); }).catch(() => {});
+    if (app.session.user) {
+      RpApi.listCards().then((c) => { this.cards = c; m.redraw(); }).catch(() => {});
+      RpApi.listCharacters().then((c) => { this.characters = c; m.redraw(); }).catch(() => {});
+    }
 
     // Poll so the whole table sees plays/turns/HP without a manual refresh. A
     // stopgap until Phase 3c's EncounterTouched broadcast; skips while the tab is
@@ -82,13 +88,39 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
     this.act(RpApi.addCombatant(this.enc!.id, data), () => { this.add.name = ''; this.add.defense = ''; this.refresh(); });
   }
 
+  spawnFoe(cardId: number) {
+    if (!cardId) return;
+    this.act(RpApi.addCombatant(this.enc!.id, { cardId, team: 'foe' }), () => { this.spawnCardId = 0; this.refresh(); });
+  }
+
+  join() {
+    if (!this.joinCharId) return;
+    this.act(RpApi.joinEncounter(this.enc!.id, this.joinCharId), () => { this.joinCharId = 0; this.refresh(); });
+  }
+
   playCard() {
     const e = this.enc!;
     if (!this.play.cardId || !e.activeId) return;
     this.act(
       RpApi.playCard(e.id, { cardId: this.play.cardId, actorCombatantId: e.activeId, targetCombatantId: this.play.targetId || undefined }),
-      (res: { result: RpPlayResult; encounter: RpEncounter }) => { this.enc = res.encounter; this.log.unshift(res.result); this.log = this.log.slice(0, 6); }
+      (res: { result: RpPlayResult; encounter: RpEncounter }) => {
+        this.enc = res.encounter;
+        this.log.unshift(res.result);
+        this.log = this.log.slice(0, 6);
+        if (res.result.crit) app.alerts.show({ type: 'success' }, t('crit_toast', { card: res.result.card }));
+      }
     );
+  }
+
+  /** Once one whole side is down, the fight is decided — surface it. */
+  outcome(): 'victory' | 'defeat' | null {
+    const e = this.enc;
+    if (!e || e.status !== 'active') return null;
+    const party = e.combatants.filter((c) => c.team === 'party');
+    const foes = e.combatants.filter((c) => c.team === 'foe');
+    if (foes.length && foes.every((c) => c.isDown)) return 'victory';
+    if (party.length && party.every((c) => c.isDown)) return 'defeat';
+    return null;
   }
 
   // ── view ─────────────────────────────────────────────────────────
@@ -111,6 +143,7 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
     }
 
     const e = this.enc;
+    const out = this.outcome();
     return m('div.RpTracker', { 'data-status': e.status }, [
       m('div.RpTracker-head', [
         m('span.RpTracker-title', [m('i.icon.fas.fa-dragon'), ' ', e.name || t('encounter')]),
@@ -119,6 +152,9 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
 
       m('ul.RpTracker-list', e.combatants.map((c) => this.combatantRow(c, e))),
 
+      out ? m('div.RpTracker-outcome', { class: 'is-' + out }, [m('i.icon.' + (out === 'victory' ? 'fas fa-trophy' : 'fas fa-skull')), ' ', t('outcome_' + out)]) : null,
+
+      e.status === 'setup' && app.session.user ? this.joinControl() : null,
       e.isGm && e.status === 'setup' ? this.setupControls() : null,
       this.canActNow() ? this.playControls(e) : null,
       e.isGm && e.status === 'active'
@@ -138,7 +174,9 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
     const accent = c.character?.color || (c.team === 'foe' ? '#dc2626' : '#2563eb');
     return m('li.RpCombatant', { key: c.id, class: (active ? 'is-active ' : '') + (c.isDown ? 'is-down' : '') }, [
       m('span.RpCombatant-turn', active ? m('i.icon.fas.fa-caret-right') : null),
-      m('span.RpCombatant-dot', { style: { background: accent } }),
+      c.character?.avatarUrl
+        ? m('img.RpCombatant-av', { src: c.character.avatarUrl, alt: '', style: { borderColor: accent } })
+        : m('span.RpCombatant-dot', { style: { background: accent } }),
       m('div.RpCombatant-main', [
         m('div.RpCombatant-top', [
           m('span.RpCombatant-name', c.name),
@@ -168,7 +206,27 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
         m('input.FormControl', { type: 'number', min: 0, placeholder: t('defense_label'), value: a.defense, oninput: (ev: any) => (a.defense = ev.target.value), title: t('defense_label') }),
       ]),
       Button.component({ className: 'Button Button--block', icon: 'fas fa-user-plus', disabled: !a.name.trim(), loading: this.busy, onclick: () => this.addCombatant() }, t('add_combatant')),
+      this.cards.some((c) => c.type === 'enemy' || c.hp != null)
+        ? m('select.FormControl', { value: this.spawnCardId, onchange: (ev: any) => this.spawnFoe(Number(ev.target.value)) }, [
+            m('option', { value: 0 }, t('spawn_foe_card')),
+            this.cards.filter((c) => c.type === 'enemy' || c.hp != null).map((c) => m('option', { value: c.id }, c.name)),
+          ])
+        : null,
       Button.component({ className: 'Button Button--primary Button--block', icon: 'fas fa-flag-checkered', disabled: this.enc!.combatants.length < 1, loading: this.busy, onclick: () => this.start() }, t('start_combat')),
+    ]);
+  }
+
+  joinControl() {
+    const me = (app.session.user as any)?.id();
+    if (!this.characters.length) return null;
+    const joined = this.enc!.combatants.some((c) => c.character && c.character.userId === me);
+    if (joined) return null;
+    return m('div.RpTracker-join', [
+      m('select.FormControl', { value: this.joinCharId, onchange: (ev: any) => (this.joinCharId = Number(ev.target.value)) }, [
+        m('option', { value: 0 }, t('join_as')),
+        this.characters.map((c) => m('option', { value: c.id }, c.name)),
+      ]),
+      Button.component({ className: 'Button Button--block RpTracker-joinbtn', icon: 'fas fa-hand-fist', disabled: !this.joinCharId, loading: this.busy, onclick: () => this.join() }, t('join_fray')),
     ]);
   }
 

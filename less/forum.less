@@ -145,3 +145,18 @@
 .RpLog-dmg { color: #dc2626; font-weight: 800; }
 .RpLog-miss { color: var(--muted-color); font-style: italic; }
 .RpLog-crit { color: #f59e0b; font-weight: 800; }
+
+.RpCombatant-av { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 2px solid; }
+
+.RpTracker-join { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid var(--control-bg, rgba(0, 0, 0, 0.08)); }
+.RpTracker-joinbtn { color: #2563eb !important; font-weight: 700; }
+
+.RpTracker-outcome {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 4px 0 10px; padding: 10px; border-radius: 10px;
+  font-weight: 800; font-size: 15px; letter-spacing: 0.02em;
+  animation: rp-pop 0.3s ease;
+}
+.RpTracker-outcome.is-victory { background: rgba(22, 163, 74, 0.14); color: #16a34a; }
+.RpTracker-outcome.is-defeat { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+@keyframes rp-pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }

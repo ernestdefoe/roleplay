@@ -43,6 +43,7 @@ return [
         ->post('/rp/encounters/{id}/combatants', 'rp.enc.add-combatant', Api\AddCombatantController::class)
         ->delete('/rp/combatants/{id}', 'rp.combatant.remove', Api\RemoveCombatantController::class)
         ->post('/rp/encounters/{id}/play', 'rp.enc.play', Api\PlayCardController::class)
+        ->post('/rp/encounters/{id}/join', 'rp.enc.join', Api\JoinEncounterController::class)
         ->post('/rp/encounters/{id}/{action}', 'rp.enc.action', Api\EncounterActionController::class),
 
     // Post-in-character: link a post to the character it was authored as.

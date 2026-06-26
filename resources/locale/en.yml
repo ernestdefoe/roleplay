@@ -67,3 +67,9 @@ ernestdefoe-roleplay:
     down: Down
     miss: miss
     crit: CRIT!
+    join_as: Join as…
+    join_fray: Join the fray
+    spawn_foe_card: Spawn foe from card…
+    crit_toast: "Critical hit with {card}!"
+    outcome_victory: Victory!
+    outcome_defeat: Defeat…
