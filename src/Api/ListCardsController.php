@@ -20,9 +20,14 @@ class ListCardsController implements RequestHandlerInterface
         $actor = RequestUtil::getActor($request);
         $actor->assertRegistered();
 
+        // Safety cap: this returns the actor's cards plus every public card on the
+        // forum, which grows unbounded as the community shares more. Capped for now;
+        // TODO: paginate (limit/offset) and split the public library into its own
+        // endpoint so the personal deck stays small.
         $cards = Card::where('user_id', $actor->id)
             ->orWhere('is_public', true)
             ->orderBy('name')
+            ->limit(200)
             ->get();
 
         return new JsonResponse(['data' => $cards->map(

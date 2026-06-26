@@ -22,12 +22,21 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class JoinEncounterController implements RequestHandlerInterface
 {
+    public function __construct(private Touch $touch)
+    {
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
         $actor->assertRegistered();
 
         $enc = Encounter::findOrFail((int) Arr::get($request->getQueryParams(), 'id'));
+
+        // Must be able to see the discussion the encounter lives in — otherwise a
+        // member could join a private setup-phase game just by guessing its id.
+        Guard::discussion($actor, (int) $enc->discussion_id);
+
         if ($enc->status !== 'setup') {
             throw new ValidationException(['status' => 'You can only join before the encounter starts.']);
         }
@@ -45,7 +54,7 @@ class JoinEncounterController implements RequestHandlerInterface
 
         $sheet = Sheet::where('character_id', $character->id)->first();
         $attrs = $sheet?->attributes ?: [];
-        $maxHp = (int) ($sheet?->max_hp ?: self::int(Arr::get($body, 'maxHp'), 1, 9999) ?? 20);
+        $maxHp = (int) ($sheet?->max_hp ?: Input::clampInt(Arr::get($body, 'maxHp'), 1, 9999) ?? 20);
 
         $c = new Combatant();
         $c->encounter_id = $enc->id;
@@ -57,17 +66,8 @@ class JoinEncounterController implements RequestHandlerInterface
         $c->meta = ['defense' => (int) ($attrs['defense'] ?? 10), 'agility' => (int) ($attrs['agility'] ?? 0)];
         $c->save();
 
-        Touch::encounter($enc);
+        $this->touch->encounter($enc);
 
         return new JsonResponse(['data' => Present::combatant($c)]);
-    }
-
-    private static function int($v, int $min, int $max): ?int
-    {
-        if ($v === null || $v === '') {
-            return null;
-        }
-
-        return max($min, min($max, (int) $v));
     }
 }

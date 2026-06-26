@@ -17,9 +17,12 @@ class ListCharactersController implements RequestHandlerInterface
         $actor = RequestUtil::getActor($request);
         $actor->assertRegistered();
 
+        // Per-user and so bounded in practice, but cap it anyway so the response
+        // (polled on every discussion view) can never balloon. TODO: paginate.
         $chars = Character::where('user_id', $actor->id)
             ->where('status', '!=', 'archived')
             ->orderBy('name')
+            ->limit(200)
             ->get();
 
         return new JsonResponse(['data' => $chars->map([Present::class, 'character'])->values()->all()]);

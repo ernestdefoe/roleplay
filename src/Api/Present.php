@@ -71,7 +71,9 @@ class Present
     /** The full live tracker: the encounter, its combatants (initiative order) and whose turn it is. */
     public static function encounter(Encounter $enc, $actor = null): array
     {
-        $combatants = $enc->combatants()->orderByDesc('initiative')->orderBy('id')->get();
+        // Eager-load characters: combatant() reads $c->character, so without this
+        // an N-combatant tracker fires N+1 queries on every state refresh.
+        $combatants = $enc->combatants()->with('character')->orderByDesc('initiative')->orderBy('id')->get();
 
         return [
             'id' => (int) $enc->id,

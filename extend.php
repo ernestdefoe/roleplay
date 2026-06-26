@@ -46,6 +46,13 @@ return [
         ->post('/rp/encounters/{id}/join', 'rp.enc.join', Api\JoinEncounterController::class)
         ->post('/rp/encounters/{id}/{action}', 'rp.enc.action', Api\EncounterActionController::class),
 
+    // Register the persistent, user-owned entities as JSON:API resource *types*
+    // (no endpoints — the custom /api/rp/* controllers own the HTTP surface). This
+    // makes characters and cards observable/extendable by other extensions and
+    // available as proper relationships, without changing the working API.
+    (new Extend\ApiResource(Api\Resource\CharacterResource::class)),
+    (new Extend\ApiResource(Api\Resource\CardResource::class)),
+
     // Post-in-character: link a post to the character it was authored as.
     (new Extend\Model(Post::class))
         ->hasOne('rpCharacterLink', Models\PostCharacter::class, 'post_id', 'id'),

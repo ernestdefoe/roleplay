@@ -70,13 +70,13 @@ class SaveCardController implements RequestHandlerInterface
             $card->damage_expr = $expr !== '' ? $expr : null;
         }
         if (Arr::has($body, 'defense')) {
-            $card->defense = self::clampInt(Arr::get($body, 'defense'), 0, 999);
+            $card->defense = Input::clampInt(Arr::get($body, 'defense'), 0, 999);
         }
         if (Arr::has($body, 'hp')) {
-            $card->hp = self::clampInt(Arr::get($body, 'hp'), 0, 9999);
+            $card->hp = Input::clampInt(Arr::get($body, 'hp'), 0, 9999);
         }
         if (Arr::has($body, 'cost')) {
-            $card->cost = (int) self::clampInt(Arr::get($body, 'cost'), 0, 99);
+            $card->cost = (int) Input::clampInt(Arr::get($body, 'cost'), 0, 99);
         }
         if (Arr::has($body, 'isPublic')) {
             $card->is_public = (bool) Arr::get($body, 'isPublic');
@@ -85,15 +85,5 @@ class SaveCardController implements RequestHandlerInterface
         $card->save();
 
         return new JsonResponse(['data' => Present::card($card, (int) $actor->id)]);
-    }
-
-    /** Clamp to a range, or null when blank (so optional numeric fields can clear). */
-    private static function clampInt($value, int $min, int $max): ?int
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        return max($min, min($max, (int) $value));
     }
 }

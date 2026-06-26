@@ -18,12 +18,20 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class EncounterActionController implements RequestHandlerInterface
 {
+    public function __construct(private Touch $touch)
+    {
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
         $actor->assertRegistered();
 
         $enc = Encounter::findOrFail((int) Arr::get($request->getQueryParams(), 'id'));
+
+        // Prove discussion access before the GM-ownership check.
+        Guard::discussion($actor, (int) $enc->discussion_id);
+
         $actor->assertPermission((int) $enc->gm_user_id === (int) $actor->id);
 
         switch (Arr::get($request->getQueryParams(), 'action')) {
@@ -50,7 +58,7 @@ class EncounterActionController implements RequestHandlerInterface
                 throw new ValidationException(['action' => 'Unknown encounter action.']);
         }
 
-        Touch::encounter($enc);
+        $this->touch->encounter($enc);
 
         return new JsonResponse(['data' => Present::encounter($enc, $actor)]);
     }

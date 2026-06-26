@@ -5,6 +5,7 @@ namespace Ernestdefoe\Roleplay\Api;
 use Ernestdefoe\Roleplay\Models\Character;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Laminas\Diactoros\Response\JsonResponse;
@@ -52,7 +53,19 @@ class SaveCharacterController implements RequestHandlerInterface
             $character->avatar_url = preg_match('#^https?://#i', $url) ? $url : null;
         }
 
-        $character->save();
+        try {
+            $character->save();
+        } catch (QueryException $e) {
+            // A concurrent create can claim the same slug between uniqueSlug()'s
+            // existence check and this insert (UNIQUE violation, SQLSTATE 23000).
+            // Only the create path generates a slug, so retry it once with a
+            // random suffix; rethrow anything else.
+            if ($id !== null || (string) $e->getCode() !== '23000') {
+                throw $e;
+            }
+            $character->slug = (Str::slug($name) ?: 'character').'-'.Str::lower(Str::random(6));
+            $character->save();
+        }
 
         return new JsonResponse(['data' => Present::character($character)]);
     }
@@ -61,9 +74,15 @@ class SaveCharacterController implements RequestHandlerInterface
     {
         $base = Str::slug($name) ?: 'character';
         $slug = $base;
-        $n = 1;
-        while (Character::where('slug', $slug)->exists()) {
-            $slug = $base.'-'.(++$n);
+
+        // Bounded probe: if base, base-2 … base-50 are all taken, fall back to a
+        // random suffix instead of looping forever. A residual race between this
+        // check and the insert is caught by the QueryException retry in handle().
+        for ($n = 2; $n <= 50 && Character::where('slug', $slug)->exists(); $n++) {
+            $slug = $base.'-'.$n;
+        }
+        if (Character::where('slug', $slug)->exists()) {
+            $slug = $base.'-'.Str::lower(Str::random(6));
         }
 
         return $slug;

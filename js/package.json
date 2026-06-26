@@ -1,8 +1,8 @@
 {
   "private": true,
   "name": "@ernestdefoe/roleplay",
-  "version": "1.0.0",
-  "description": "A customizable, animated hero banner for Flarum 2",
+  "version": "1.0.1",
+  "description": "Role-play for Flarum 2: characters, in-character posts, and card-based tactical encounters.",
   "dependencies": {},
   "devDependencies": {
     "flarum-tsconfig": "^2.0.0",

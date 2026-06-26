@@ -27,14 +27,19 @@ class AddCombatantController implements RequestHandlerInterface
         $actor->assertRegistered();
 
         $enc = Encounter::findOrFail((int) Arr::get($request->getQueryParams(), 'id'));
+
+        // Prove discussion access before the GM-ownership check (a GM who has since
+        // lost access to the discussion must not keep mutating its encounter).
+        Guard::discussion($actor, (int) $enc->discussion_id);
+
         $actor->assertPermission((int) $enc->gm_user_id === (int) $actor->id);
 
         $body = (array) $request->getParsedBody();
         $name = trim((string) Arr::get($body, 'name', ''));
         $team = Arr::get($body, 'team') === 'foe' ? 'foe' : 'party';
-        $defense = self::int(Arr::get($body, 'defense'), 0, 999);
-        $agility = self::int(Arr::get($body, 'agility'), -20, 20);
-        $maxHp = self::int(Arr::get($body, 'maxHp'), 1, 9999) ?? 10;
+        $defense = Input::clampInt(Arr::get($body, 'defense'), 0, 999);
+        $agility = Input::clampInt(Arr::get($body, 'agility'), -20, 20);
+        $maxHp = Input::clampInt(Arr::get($body, 'maxHp'), 1, 9999) ?? 10;
 
         $c = new Combatant();
         $c->encounter_id = $enc->id;
@@ -71,14 +76,5 @@ class AddCombatantController implements RequestHandlerInterface
         $c->save();
 
         return new JsonResponse(['data' => Present::combatant($c)]);
-    }
-
-    private static function int($v, int $min, int $max): ?int
-    {
-        if ($v === null || $v === '') {
-            return null;
-        }
-
-        return max($min, min($max, (int) $v));
     }
 }

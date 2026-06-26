@@ -23,6 +23,11 @@ class ShowEncounterController implements RequestHandlerInterface
         $actor->assertRegistered();
 
         $discussionId = (int) Arr::get($request->getQueryParams(), 'discussionId');
+
+        // Only viewers of the discussion may read its encounter; otherwise any
+        // member could enumerate encounters (combatants, HP, player ids) by id.
+        Guard::discussion($actor, $discussionId);
+
         $enc = Encounter::where('discussion_id', $discussionId)
             ->where('status', '!=', 'ended')
             ->latest('id')

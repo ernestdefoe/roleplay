@@ -22,12 +22,20 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class PlayCardController implements RequestHandlerInterface
 {
+    public function __construct(private Touch $touch)
+    {
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
         $actor->assertRegistered();
 
         $enc = Encounter::findOrFail((int) Arr::get($request->getQueryParams(), 'id'));
+
+        // Prove discussion access before any ownership/turn check.
+        Guard::discussion($actor, (int) $enc->discussion_id);
+
         if ($enc->status !== 'active') {
             throw new ValidationException(['status' => 'The encounter is not active.']);
         }
@@ -59,7 +67,7 @@ class PlayCardController implements RequestHandlerInterface
             $target->save(); // Game::play mutated hp/is_down in memory
         }
 
-        Touch::encounter($enc);
+        $this->touch->encounter($enc);
 
         return new JsonResponse(['data' => [
             'result' => $result,
