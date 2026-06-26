@@ -25,6 +25,8 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
   joinCharId = 0;
   spawnCardId = 0;
   private pollTimer: any = null;
+  private boundChannel: any = null;
+  private rtHandler: any = null;
 
   oninit(vnode: any) {
     super.oninit(vnode);
@@ -34,21 +36,44 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
       RpApi.listCharacters().then((c) => { this.characters = c; m.redraw(); }).catch(() => {});
     }
 
-    // Poll so the whole table sees plays/turns/HP without a manual refresh. A
-    // stopgap until Phase 3c's EncounterTouched broadcast; skips while the tab is
-    // hidden or the viewer is mid-action, and only redraws on an actual change.
+    // Live updates: when an action elsewhere touches this discussion's encounter,
+    // the server broadcasts `rp.encounter.touched` on flarum/realtime's public
+    // channel — bind it and refetch instantly. The poll below is a fallback (for
+    // when realtime is absent / the daemon is down), so it runs slowly.
+    this.bindRealtime();
     this.pollTimer = setInterval(() => {
+      this.bindRealtime(); // (re)bind after a reconnect swaps the channel object
       if (document.hidden || this.busy) return;
       RpApi.showEncounter(this.discussionId)
         .then((e) => {
           if (JSON.stringify(e) !== JSON.stringify(this.enc)) { this.enc = e; m.redraw(); }
         })
         .catch(() => {});
-    }, 5000);
+    }, 15000);
+  }
+
+  /** Subscribe to flarum/realtime's public channel and bind our event. Realtime
+   *  only auto-subscribes logged-in users to their private channel, so we join
+   *  the (auth-free) public channel ourselves via the shared Pusher instance.
+   *  Idempotent + re-binds after a reconnect swaps the Pusher. No-op without
+   *  flarum/realtime. */
+  bindRealtime() {
+    const pusher = (app as any).websocket;
+    if (!pusher || typeof pusher.subscribe !== 'function') return;
+    const channel = pusher.subscribe('public');
+    if (!channel || channel === this.boundChannel) return;
+    this.boundChannel = channel;
+    this.rtHandler = (data: any) => {
+      if (Number(data?.discussionId) === this.discussionId && !this.busy) this.refresh();
+    };
+    channel.bind('rp.encounter.touched', this.rtHandler);
   }
 
   onremove() {
     if (this.pollTimer) clearInterval(this.pollTimer);
+    if (this.boundChannel && this.rtHandler) {
+      try { this.boundChannel.unbind('rp.encounter.touched', this.rtHandler); } catch (e) { /* channel gone */ }
+    }
   }
 
   get discussionId(): number {
