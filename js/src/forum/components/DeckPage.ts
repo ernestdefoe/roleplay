@@ -150,7 +150,13 @@ export default class DeckPage extends Page {
         Select.component({ value: f.type, options: typeOptions, onchange: (v: any) => (f.type = v) }),
       ]),
       m('div.RpForm-row', [
-        m('label.RpForm-field', [t('icon_label'), m('input.FormControl', { placeholder: 'fas fa-bolt', value: f.icon, oninput: (e: any) => (f.icon = e.target.value) })]),
+        m('label.RpForm-field', [
+          t('icon_label'),
+          m('div.RpForm-iconrow', [
+            m('span.RpForm-iconpreview', { title: t('icon_preview') }, m('i.icon.' + (f.icon.trim() || 'fas fa-bolt'))),
+            m('input.FormControl', { placeholder: 'fas fa-bolt', value: f.icon, oninput: (e: any) => (f.icon = e.target.value) }),
+          ]),
+        ]),
         m('label.RpForm-field', [t('cost_label'), m('input.FormControl', { type: 'number', min: 0, max: 99, value: f.cost, oninput: (e: any) => (f.cost = e.target.value) })]),
       ]),
       m('div.RpForm-row', [
@@ -175,6 +181,11 @@ export default class DeckPage extends Page {
     return m('div.RpTile', { key: c.id, 'data-type': c.type }, [
       m('div.RpTile-head', [
         m('i.RpTile-icon.icon.' + (c.icon || 'fas fa-bolt')),
+        m('span.RpTile-scope', { 'data-scope': c.isPublic ? 'shared' : 'private', title: c.isPublic ? t('scope_shared') : t('scope_private') }, [
+          m('i.icon.' + (c.isPublic ? 'fas fa-globe' : 'fas fa-lock')),
+          ' ',
+          c.isPublic ? t('scope_shared') : t('scope_private'),
+        ]),
         c.cost ? m('span.RpTile-cost', c.cost) : null,
       ]),
       m('div.RpTile-name', c.name),

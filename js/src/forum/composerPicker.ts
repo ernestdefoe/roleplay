@@ -2,6 +2,7 @@ import app from 'flarum/forum/app';
 import { extend } from 'flarum/common/extend';
 import Select from 'flarum/common/components/Select';
 import { RpApi, RpCharacter } from './api';
+import { isRpDiscussion } from './rpTags';
 
 declare const m: import('mithril').Static;
 
@@ -35,6 +36,9 @@ export default function composerPicker() {
 
   ext('flarum/forum/components/ReplyComposer', 'headerItems', function (this: any, items: any) {
     if (!app.session.user) return;
+    // Only offer the in-character picker where role-play is enabled.
+    const discussion = (this.attrs && this.attrs.discussion) || null;
+    if (discussion && !isRpDiscussion(discussion)) return;
     ensureChars();
     if (!cache || !cache.length) return;
 

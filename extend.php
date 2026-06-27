@@ -27,6 +27,11 @@ return [
 
     new Extend\Locales(__DIR__ . '/resources/locale'),
 
+    // Which tags enable role-play (the picker, deck and encounters). Comma-separated
+    // slugs on the admin side; exposed to the frontend as an array. Empty = everywhere.
+    (new Extend\Settings())
+        ->serializeToForum('rpTags', 'ernestdefoe-roleplay.tags', fn ($v) => array_values(array_filter(array_map('trim', explode(',', (string) $v))))),
+
     (new Extend\Routes('api'))
         ->get('/rp/characters', 'rp.characters.list', Api\ListCharactersController::class)
         ->post('/rp/characters', 'rp.characters.create', Api\SaveCharacterController::class)

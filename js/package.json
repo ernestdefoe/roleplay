@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@ernestdefoe/roleplay",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Role-play for Flarum 2: characters, in-character posts, and card-based tactical encounters.",
   "dependencies": {},
   "devDependencies": {

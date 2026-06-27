@@ -27,7 +27,10 @@ class CreateEncounterController implements RequestHandlerInterface
         $discussionId = (int) Arr::get($body, 'discussionId');
 
         // Must be a discussion the actor can actually see.
-        Discussion::whereVisibleTo($actor)->findOrFail($discussionId);
+        $discussion = Discussion::whereVisibleTo($actor)->findOrFail($discussionId);
+
+        // Encounters only run where role-play is enabled (admin-configured tags).
+        $actor->assertPermission(\Ernestdefoe\Roleplay\RpGate::isRpDiscussion($discussion));
 
         $existing = Encounter::where('discussion_id', $discussionId)->where('status', '!=', 'ended')->first();
         if ($existing) {

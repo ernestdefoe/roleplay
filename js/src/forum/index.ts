@@ -8,6 +8,7 @@ import DeckPage from './components/DeckPage';
 import CombatTracker from './components/CombatTracker';
 import inCharacter from './inCharacter';
 import composerPicker from './composerPicker';
+import { isRpDiscussion } from './rpTags';
 
 app.initializers.add('ernestdefoe-roleplay', () => {
   app.routes['rp.characters'] = { path: '/characters', component: CharactersPage } as any;
@@ -34,10 +35,11 @@ app.initializers.add('ernestdefoe-roleplay', () => {
     );
   });
 
-  // The combat tracker lives at the top of a discussion's sidebar.
+  // The combat tracker lives at the top of a discussion's sidebar — but only in
+  // discussions where role-play is enabled (admin-configured tags).
   extend(DiscussionPage.prototype, 'sidebarItems', function (items: any) {
     const discussion = (this as any).discussion;
-    if (!discussion) return;
+    if (!discussion || !isRpDiscussion(discussion)) return;
     items.add('rp-combat', CombatTracker.component({ discussionId: Number(discussion.id()) }), 100);
   });
 
