@@ -72,8 +72,8 @@ jobs:
           set -euo pipefail
 
           if [ -z "${FLARUM_FORUM_URL}" ] || [ -z "${FLARUM_DISCUSSION_ID}" ] || [ -z "${FLARUM_API_KEY}" ]; then
-            echo "Missing FLARUM_FORUM_URL / FLARUM_DISCUSSION_ID / FLARUM_API_KEY — set repo variables and secret." >&2
-            exit 1
+            echo "::notice::No support discussion configured for this repository — skipping the announcement. Set the FLARUM_FORUM_URL and FLARUM_DISCUSSION_ID variables and the FLARUM_API_KEY secret to enable it."
+            exit 0
           fi
 
           CONTENT=$(printf '## %s %s\n\n%s\n\n[View release on GitHub](%s)\n' \
