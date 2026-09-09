@@ -81,7 +81,7 @@ That's it — the six `rp_*` tables are created automatically on enable. Then:
 ### Requirements
 
 - Flarum **2.0+**
-- PHP 8.1+
+- PHP 8.3+
 - *(Optional)* flarum/realtime for live updates
 
 ---
