@@ -3,16 +3,41 @@ import { extend } from 'flarum/common/extend';
 import SessionDropdown from 'flarum/forum/components/SessionDropdown';
 import DiscussionPage from 'flarum/forum/components/DiscussionPage';
 import LinkButton from 'flarum/common/components/LinkButton';
-import CharactersPage from './components/CharactersPage';
-import DeckPage from './components/DeckPage';
-import CombatTracker from './components/CombatTracker';
+import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import inCharacter from './inCharacter';
 import composerPicker from './composerPicker';
 import { isRpDiscussion } from './rpTags';
 
+declare const m: any;
+
+/**
+ * The combat tracker is a chunk fetched the first time a role-play discussion
+ * opens. Until it arrives the sidebar shows the tracker's own loading state.
+ */
+let CombatTracker: any = null;
+let trackerRequested = false;
+
+function combatTracker(): any {
+  if (!CombatTracker && !trackerRequested) {
+    trackerRequested = true;
+    import('./components/CombatTracker').then(
+      (mod) => {
+        CombatTracker = mod.default;
+        m.redraw();
+      },
+      () => {
+        trackerRequested = false;
+      }
+    );
+  }
+
+  return CombatTracker;
+}
+
 app.initializers.add('ernestdefoe-roleplay', () => {
-  app.routes['rp.characters'] = { path: '/characters', component: CharactersPage } as any;
-  app.routes['rp.deck'] = { path: '/deck', component: DeckPage } as any;
+  // The pages are chunks fetched on first visit, not part of every page.
+  app.routes['rp.characters'] = { path: '/characters', component: () => import('./components/CharactersPage') } as any;
+  app.routes['rp.deck'] = { path: '/deck', component: () => import('./components/DeckPage') } as any;
 
   // "My Characters" + "My Deck" entries in the account dropdown.
   extend(SessionDropdown.prototype, 'items', function (items: any) {
@@ -40,7 +65,14 @@ app.initializers.add('ernestdefoe-roleplay', () => {
   extend(DiscussionPage.prototype, 'sidebarItems', function (items: any) {
     const discussion = (this as any).discussion;
     if (!discussion || !isRpDiscussion(discussion)) return;
-    items.add('rp-combat', CombatTracker.component({ discussionId: Number(discussion.id()) }), 100);
+    const Tracker = combatTracker();
+    items.add(
+      'rp-combat',
+      Tracker
+        ? Tracker.component({ discussionId: Number(discussion.id()) })
+        : m('div.RpTracker', m(LoadingIndicator, { display: 'block', size: 'small' })),
+      100
+    );
   });
 
   inCharacter();

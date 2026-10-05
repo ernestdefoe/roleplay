@@ -19,6 +19,7 @@ use Flarum\Post\Post;
 return [
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
+        ->jsDirectory(__DIR__ . '/js/dist/forum')
         ->css(__DIR__ . '/less/forum.less')
         ->route('/characters', 'rp.characters')
         ->route('/deck', 'rp.deck'),
