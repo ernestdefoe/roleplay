@@ -9,6 +9,7 @@
 use Carbon\Carbon;
 use Ernestdefoe\Roleplay\Api;
 use Ernestdefoe\Roleplay\Models;
+use Ernestdefoe\Roleplay\PostCharacters;
 use Flarum\Api\Resource\PostResource;
 use Flarum\Api\Schema;
 use Flarum\Extend;
@@ -97,17 +98,7 @@ return [
                 }),
 
             // Expose the character a post was authored as (for in-character display).
-            Schema\Arr::make('rpCharacter')->get(function (Post $post) {
-                $c = $post->rpCharacterLink?->character;
-
-                return $c ? [
-                    'id' => (int) $c->id,
-                    'name' => $c->name,
-                    'slug' => $c->slug,
-                    'avatarUrl' => $c->avatar_url,
-                    'color' => $c->color,
-                ] : null;
-            }),
+            Schema\Arr::make('rpCharacter')->get(fn (Post $post) => PostCharacters::for($post)),
         ])
         ->endpoint(['index', 'show'], fn ($e) => $e->eagerLoad('rpCharacterLink.character')),
 ];

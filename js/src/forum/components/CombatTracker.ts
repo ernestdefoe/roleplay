@@ -30,20 +30,33 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
 
   oninit(vnode: any) {
     super.oninit(vnode);
-    this.refresh(true);
-    if (app.session.user) {
-      RpApi.listCards().then((c) => { this.cards = c; m.redraw(); }).catch(() => {});
-      RpApi.listCharacters().then((c) => { this.characters = c; m.redraw(); }).catch(() => {});
+
+    // Encounters are members-only (the endpoint answers a guest with 401), so a
+    // guest neither loads nor polls: it was a refused request on every
+    // discussion page and another every 15 s after.
+    if (!app.session.user) {
+      this.loading = false;
+      return;
     }
+
+    this.refresh(true);
+    RpApi.listCards().then((c) => { this.cards = c; m.redraw(); }).catch(() => {});
+    RpApi.listCharacters().then((c) => { this.characters = c; m.redraw(); }).catch(() => {});
 
     // Live updates: when an action elsewhere touches this discussion's encounter,
     // the server broadcasts `rp.encounter.touched` on flarum/realtime's public
     // channel — bind it and refetch instantly. The poll below is a fallback (for
-    // when realtime is absent / the daemon is down), so it runs slowly.
+    // when realtime is absent / the daemon is down), so it runs slowly: every
+    // 15 s while a fight is on and nothing pushes, once a minute otherwise. With
+    // no tag configured this runs in EVERY discussion, almost all of which have
+    // no encounter at all.
     this.bindRealtime();
+    let tick = 0;
     this.pollTimer = setInterval(() => {
       this.bindRealtime(); // (re)bind after a reconnect swaps the channel object
+      tick++;
       if (document.hidden || this.busy) return;
+      if ((this.boundChannel || !this.enc) && tick % 4 !== 0) return;
       RpApi.showEncounter(this.discussionId)
         .then((e) => {
           if (JSON.stringify(e) !== JSON.stringify(this.enc)) { this.enc = e; m.redraw(); }
