@@ -53,6 +53,20 @@ return [
         ->post('/rp/encounters/{id}/join', 'rp.enc.join', Api\JoinEncounterController::class)
         ->post('/rp/encounters/{id}/{action}', 'rp.enc.action', Api\EncounterActionController::class),
 
+    // Ending an encounter posts its recap: give it the same 10-second flood
+    // control as an ordinary reply.
+    (new Extend\ThrottleApi())
+        ->set('roleplayEncounterRecap', function ($request) {
+            if ($request->getAttribute('routeName') !== 'rp.enc.action'
+                || ($request->getAttribute('routeParameters')['action'] ?? null) !== 'end') {
+                return null;
+            }
+
+            return (new \Flarum\Post\PostCreationThrottler())(
+                $request->withAttribute('routeName', 'posts.create')
+            );
+        }),
+
     // Register the persistent, user-owned entities as JSON:API resource *types*
     // (no endpoints — the custom /api/rp/* controllers own the HTTP surface). This
     // makes characters and cards observable/extendable by other extensions and

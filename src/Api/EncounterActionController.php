@@ -2,13 +2,13 @@
 
 namespace Ernestdefoe\Roleplay\Api;
 
-use Carbon\Carbon;
 use Ernestdefoe\Roleplay\Game;
 use Ernestdefoe\Roleplay\Models\Encounter;
+use Flarum\Api\JsonApi;
+use Flarum\Api\Resource\PostResource;
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
-use Flarum\Post\CommentPost;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -21,7 +21,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class EncounterActionController implements RequestHandlerInterface
 {
-    public function __construct(private Touch $touch)
+    public function __construct(private Touch $touch, private JsonApi $api)
     {
     }
 
@@ -97,22 +97,24 @@ class EncounterActionController implements RequestHandlerInterface
                 $parts[] = 'Defeated: ' . implode(', ', $down);
             }
 
-            $discussion = Discussion::find($enc->discussion_id);
-            if (! $discussion) {
-                return;
+            $discussion = Discussion::whereVisibleTo($actor)->find($enc->discussion_id);
+            if (! $discussion || ! $actor->can('reply', $discussion)) {
+                return; // locked, read-only or no longer reachable: end without a recap
             }
 
-            $post = new CommentPost();
-            $post->user_id = $actor->id;
-            $post->discussion_id = $discussion->id;
-            $post->ip_address = $request->getAttribute('ipAddress');
-            $post->created_at = Carbon::now();
-            $post->setContentAttribute(implode("\n\n", $parts), $actor);
-            $post->save();
-
-            $discussion->refreshLastPost();
-            $discussion->refreshCommentCount();
-            $discussion->save();
+            // Post it the way a reply is posted, as the GM, so approval,
+            // events and every other extension's rules apply to it.
+            $this->api->forResource(PostResource::class)
+                ->forEndpoint('create')
+                ->withRequest($request)
+                ->process([
+                    'data' => [
+                        'attributes' => ['content' => implode("\n\n", $parts)],
+                        'relationships' => [
+                            'discussion' => ['data' => ['type' => 'discussions', 'id' => (string) $discussion->id]],
+                        ],
+                    ],
+                ], [], ['actor' => $actor]);
         } catch (\Throwable $e) {
             // ignore — the encounter still ends cleanly
         }

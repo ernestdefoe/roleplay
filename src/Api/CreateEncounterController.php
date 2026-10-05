@@ -32,6 +32,10 @@ class CreateEncounterController implements RequestHandlerInterface
         // Encounters only run where role-play is enabled (admin-configured tags).
         $actor->assertPermission(\Ernestdefoe\Roleplay\RpGate::isRpDiscussion($discussion));
 
+        // Running a fight ends with a recap posted in the thread, so the GM
+        // must be allowed to reply there (not locked, not read-only).
+        $actor->assertCan('reply', $discussion);
+
         $existing = Encounter::where('discussion_id', $discussionId)->where('status', '!=', 'ended')->first();
         if ($existing) {
             return new JsonResponse(['data' => Present::encounter($existing, $actor)]);
