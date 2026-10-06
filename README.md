@@ -112,9 +112,11 @@ npm run build
 
 ---
 
-## Discuss
+## Support
 
-Questions, ideas and release notes: [Role Play on discuss.flarum.org](https://discuss.flarum.org/d/39480-role-play-built-with-ai).
+- **Support forum:** [Role-Play on ernestdefoe.online](https://ernestdefoe.online/d/67)
+- **Flarum community:** [Role-Play on discuss.flarum.org](https://discuss.flarum.org/d/39480-role-play-built-with-ai)
+- **Bug reports:** [GitHub issues](https://github.com/ernestdefoe/roleplay/issues)
 
 ## License
 
