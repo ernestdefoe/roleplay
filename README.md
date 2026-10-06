@@ -112,6 +112,10 @@ npm run build
 
 ---
 
+## Discuss
+
+Questions, ideas and release notes: [Role Play on discuss.flarum.org](https://discuss.flarum.org/d/39480-role-play-built-with-ai).
+
 ## License
 
 [MIT](LICENSE) © Ernest Defoe. Free to use, fork and build on.
