@@ -3,6 +3,9 @@
     "description": "Role-play for Flarum: play a character, post in-character, and run a card-based tactical game inside your discussions.",
     "type": "flarum-extension",
     "license": "MIT",
+    "support": {
+        "forum": "https://discuss.flarum.org/d/39480-role-play-built-with-ai"
+    },
     "require": {
         "php": "^8.3",
         "flarum/core": "^2.0"
