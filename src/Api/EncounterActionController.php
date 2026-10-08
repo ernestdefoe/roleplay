@@ -84,18 +84,18 @@ class EncounterActionController implements RequestHandlerInterface
                 if ($c->is_down || (int) $c->hp <= 0) {
                     $down[] = $name;
                 } else {
-                    $standing[] = $name . ' (' . max(0, (int) $c->hp) . '/' . (int) $c->max_hp . ' HP)';
+                    $standing[] = $name.' ('.max(0, (int) $c->hp).'/'.(int) $c->max_hp.' HP)';
                 }
             }
 
             $title = $enc->name ?: 'The encounter';
             $rounds = (int) $enc->round;
-            $parts = ['⚔️ ' . $title . ' has ended' . ($rounds > 0 ? ' after ' . $rounds . ' round' . ($rounds === 1 ? '' : 's') : '') . '.'];
+            $parts = ['⚔️ '.$title.' has ended'.($rounds > 0 ? ' after '.$rounds.' round'.($rounds === 1 ? '' : 's') : '').'.'];
             if ($standing) {
-                $parts[] = 'Still standing: ' . implode(', ', $standing);
+                $parts[] = 'Still standing: '.implode(', ', $standing);
             }
             if ($down) {
-                $parts[] = 'Defeated: ' . implode(', ', $down);
+                $parts[] = 'Defeated: '.implode(', ', $down);
             }
 
             $discussion = Discussion::whereVisibleTo($actor)->find($enc->discussion_id);
