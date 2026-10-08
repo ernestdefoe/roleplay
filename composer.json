@@ -11,10 +11,20 @@
         "flarum/core": "^2.0"
     },
     "authors": [
-        { "name": "ernestdefoe", "email": "ernestdefoe@gmail.com" }
+        {
+            "name": "ernestdefoe",
+            "email": "ernestdefoe@gmail.com"
+        }
     ],
     "autoload": {
-        "psr-4": { "Ernestdefoe\\Roleplay\\": "src/" }
+        "psr-4": {
+            "Ernestdefoe\\Roleplay\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ernestdefoe\\Roleplay\\Tests\\": "tests/"
+        }
     },
     "extra": {
         "flarum-extension": {
@@ -26,5 +36,27 @@
                 "color": "#fff"
             }
         }
-    }
+    },
+    "require-dev": {
+        "flarum/phpstan": "^2.0",
+        "flarum/testing": "^2.0",
+        "flarum/tags": "^2.0",
+        "pusher/pusher-php-server": "^7.2"
+    },
+    "scripts": {
+        "test": [
+            "@test:integration"
+        ],
+        "test:integration": "phpunit -c tests/phpunit.integration.xml",
+        "test:setup": "@php tests/integration/setup.php",
+        "analyse:phpstan": "phpstan analyse"
+    },
+    "scripts-descriptions": {
+        "test": "Runs all tests.",
+        "test:integration": "Runs all integration tests.",
+        "test:setup": "Sets up a database for use with integration tests. Execute this only once.",
+        "analyse:phpstan": "Run static analysis"
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true
 }
