@@ -105,17 +105,17 @@ export const RpApi = {
     req(id ? 'PATCH' : 'POST', '/rp/cards' + (id ? '/' + id : ''), data).then((r) => r.data),
   deleteCard: (id: number): Promise<void> => req('DELETE', '/rp/cards/' + id),
 
-  showEncounter: (discussionId: number): Promise<RpEncounter | null> =>
-    req('GET', '/rp/encounters?discussionId=' + discussionId).then((r) => r.data),
+  showEncounter: (discussionId: number): Promise<RpEncounter | null> => req('GET', '/rp/encounters?discussionId=' + discussionId).then((r) => r.data),
   createEncounter: (discussionId: number, name?: string): Promise<RpEncounter> =>
     req('POST', '/rp/encounters', { discussionId, name }).then((r) => r.data),
-  addCombatant: (encId: number, data: any): Promise<RpCombatant> =>
-    req('POST', '/rp/encounters/' + encId + '/combatants', data).then((r) => r.data),
+  addCombatant: (encId: number, data: any): Promise<RpCombatant> => req('POST', '/rp/encounters/' + encId + '/combatants', data).then((r) => r.data),
   joinEncounter: (encId: number, characterId: number, maxHp?: number): Promise<RpCombatant> =>
     req('POST', '/rp/encounters/' + encId + '/join', { characterId, maxHp }).then((r) => r.data),
   removeCombatant: (id: number): Promise<void> => req('DELETE', '/rp/combatants/' + id),
   encounterAction: (encId: number, action: 'start' | 'next' | 'end'): Promise<RpEncounter> =>
     req('POST', '/rp/encounters/' + encId + '/' + action).then((r) => r.data),
-  playCard: (encId: number, data: { cardId: number; actorCombatantId: number; targetCombatantId?: number }): Promise<{ result: RpPlayResult; encounter: RpEncounter }> =>
-    req('POST', '/rp/encounters/' + encId + '/play', data).then((r) => r.data),
+  playCard: (
+    encId: number,
+    data: { cardId: number; actorCombatantId: number; targetCombatantId?: number }
+  ): Promise<{ result: RpPlayResult; encounter: RpEncounter }> => req('POST', '/rp/encounters/' + encId + '/play', data).then((r) => r.data),
 };

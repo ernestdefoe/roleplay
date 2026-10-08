@@ -110,8 +110,11 @@ export default class CharactersPage extends Page {
         this.loading
           ? m(LoadingIndicator)
           : this.characters.length
-          ? m('div.RpCharacterList', this.characters.map((c) => this.characterRow(c, t)))
-          : m('p.RpPage-empty', t('no_characters')),
+            ? m(
+                'div.RpCharacterList',
+                this.characters.map((c) => this.characterRow(c, t))
+              )
+            : m('p.RpPage-empty', t('no_characters')),
       ]),
     ]);
   }
@@ -119,7 +122,11 @@ export default class CharactersPage extends Page {
   characterRow(c: RpCharacter, t: any) {
     const accent = c.color || '#7c3aed';
     return m('div.RpCard.RpCharacter', { key: c.id }, [
-      m('span.RpCharacter-badge', { style: { background: accent } }, c.avatarUrl ? m('img', { src: c.avatarUrl, alt: '' }) : m('span', (c.name[0] || '?').toUpperCase())),
+      m(
+        'span.RpCharacter-badge',
+        { style: { background: accent } },
+        c.avatarUrl ? m('img', { src: c.avatarUrl, alt: '' }) : m('span', (c.name[0] || '?').toUpperCase())
+      ),
       m('div.RpCharacter-main', [
         m('div.RpCharacter-name', c.name),
         m('div.RpCharacter-meta', t('post_count', { count: c.postCount })),
@@ -127,7 +134,12 @@ export default class CharactersPage extends Page {
       ]),
       m('div.RpCharacter-actions', [
         Button.component({ className: 'Button Button--icon Button--flat', icon: 'fas fa-pen', onclick: () => this.edit(c), title: t('edit') }),
-        Button.component({ className: 'Button Button--icon Button--flat', icon: 'fas fa-box-archive', onclick: () => this.remove(c), title: t('archive') }),
+        Button.component({
+          className: 'Button Button--icon Button--flat',
+          icon: 'fas fa-box-archive',
+          onclick: () => this.remove(c),
+          title: t('archive'),
+        }),
       ]),
     ]);
   }

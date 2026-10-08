@@ -21,7 +21,18 @@ type Form = {
   isPublic: boolean;
 };
 
-const BLANK: Form = { name: '', icon: 'fas fa-bolt', type: 'ability', description: '', attackExpr: '', damageExpr: '', defense: '', hp: '', cost: '0', isPublic: false };
+const BLANK: Form = {
+  name: '',
+  icon: 'fas fa-bolt',
+  type: 'ability',
+  description: '',
+  attackExpr: '',
+  damageExpr: '',
+  defense: '',
+  hp: '',
+  cost: '0',
+  isPublic: false,
+};
 
 /**
  * "My Deck" — the card builder. A member crafts cards (abilities, items, spells,
@@ -130,9 +141,20 @@ export default class DeckPage extends Page {
         this.loading
           ? m(LoadingIndicator)
           : [
-              mine.length ? m('div.RpDeck-grid', mine.map((c) => this.cardTile(c, t))) : m('p.RpPage-empty', t('no_cards')),
+              mine.length
+                ? m(
+                    'div.RpDeck-grid',
+                    mine.map((c) => this.cardTile(c, t))
+                  )
+                : m('p.RpPage-empty', t('no_cards')),
               shared.length
-                ? [m('h3.RpDeck-heading', t('shared_cards')), m('div.RpDeck-grid', shared.map((c) => this.cardTile(c, t)))]
+                ? [
+                    m('h3.RpDeck-heading', t('shared_cards')),
+                    m(
+                      'div.RpDeck-grid',
+                      shared.map((c) => this.cardTile(c, t))
+                    ),
+                  ]
                 : null,
             ],
       ]),
@@ -146,7 +168,12 @@ export default class DeckPage extends Page {
     return m('div.RpCard.RpForm.RpDeck-form', [
       m('h3', f.id ? t('edit_card') : t('new_card')),
       m('div.RpForm-row', [
-        m('input.FormControl.RpForm-grow', { placeholder: t('card_name_placeholder'), value: f.name, maxlength: 80, oninput: (e: any) => (f.name = e.target.value) }),
+        m('input.FormControl.RpForm-grow', {
+          placeholder: t('card_name_placeholder'),
+          value: f.name,
+          maxlength: 80,
+          oninput: (e: any) => (f.name = e.target.value),
+        }),
         Select.component({ value: f.type, options: typeOptions, onchange: (v: any) => (f.type = v) }),
       ]),
       m('div.RpForm-row', [
@@ -157,20 +184,47 @@ export default class DeckPage extends Page {
             m('input.FormControl', { placeholder: 'fas fa-bolt', value: f.icon, oninput: (e: any) => (f.icon = e.target.value) }),
           ]),
         ]),
-        m('label.RpForm-field', [t('cost_label'), m('input.FormControl', { type: 'number', min: 0, max: 99, value: f.cost, oninput: (e: any) => (f.cost = e.target.value) })]),
+        m('label.RpForm-field', [
+          t('cost_label'),
+          m('input.FormControl', { type: 'number', min: 0, max: 99, value: f.cost, oninput: (e: any) => (f.cost = e.target.value) }),
+        ]),
       ]),
       m('div.RpForm-row', [
-        m('label.RpForm-field', [t('attack_label'), m('input.FormControl', { placeholder: '1d20+3', value: f.attackExpr, oninput: (e: any) => (f.attackExpr = e.target.value) })]),
-        m('label.RpForm-field', [t('damage_label'), m('input.FormControl', { placeholder: '2d6+1', value: f.damageExpr, oninput: (e: any) => (f.damageExpr = e.target.value) })]),
+        m('label.RpForm-field', [
+          t('attack_label'),
+          m('input.FormControl', { placeholder: '1d20+3', value: f.attackExpr, oninput: (e: any) => (f.attackExpr = e.target.value) }),
+        ]),
+        m('label.RpForm-field', [
+          t('damage_label'),
+          m('input.FormControl', { placeholder: '2d6+1', value: f.damageExpr, oninput: (e: any) => (f.damageExpr = e.target.value) }),
+        ]),
       ]),
       m('div.RpForm-row', [
-        m('label.RpForm-field', [t('defense_label'), m('input.FormControl', { type: 'number', min: 0, value: f.defense, oninput: (e: any) => (f.defense = e.target.value) })]),
-        m('label.RpForm-field', [t('hp_label'), m('input.FormControl', { type: 'number', min: 0, value: f.hp, oninput: (e: any) => (f.hp = e.target.value) })]),
+        m('label.RpForm-field', [
+          t('defense_label'),
+          m('input.FormControl', { type: 'number', min: 0, value: f.defense, oninput: (e: any) => (f.defense = e.target.value) }),
+        ]),
+        m('label.RpForm-field', [
+          t('hp_label'),
+          m('input.FormControl', { type: 'number', min: 0, value: f.hp, oninput: (e: any) => (f.hp = e.target.value) }),
+        ]),
       ]),
-      m('textarea.FormControl', { placeholder: t('card_desc_placeholder'), rows: 2, value: f.description, oninput: (e: any) => (f.description = e.target.value) }),
-      m('label.RpForm-check', [m('input', { type: 'checkbox', checked: f.isPublic, onchange: (e: any) => (f.isPublic = e.target.checked) }), ' ', t('share_card')]),
+      m('textarea.FormControl', {
+        placeholder: t('card_desc_placeholder'),
+        rows: 2,
+        value: f.description,
+        oninput: (e: any) => (f.description = e.target.value),
+      }),
+      m('label.RpForm-check', [
+        m('input', { type: 'checkbox', checked: f.isPublic, onchange: (e: any) => (f.isPublic = e.target.checked) }),
+        ' ',
+        t('share_card'),
+      ]),
       m('div.RpForm-actions', [
-        Button.component({ className: 'Button Button--primary', loading: this.saving, disabled: !f.name.trim(), onclick: () => this.save() }, f.id ? t('save') : t('create_card')),
+        Button.component(
+          { className: 'Button Button--primary', loading: this.saving, disabled: !f.name.trim(), onclick: () => this.save() },
+          f.id ? t('save') : t('create_card')
+        ),
         f.id ? Button.component({ className: 'Button', onclick: () => this.reset() }, t('cancel')) : null,
       ]),
     ]);
@@ -200,11 +254,16 @@ export default class DeckPage extends Page {
       c.mine
         ? m('div.RpTile-actions', [
             Button.component({ className: 'Button Button--icon Button--flat', icon: 'fas fa-pen', onclick: () => this.edit(c), title: t('edit') }),
-            Button.component({ className: 'Button Button--icon Button--flat', icon: 'fas fa-trash', onclick: () => this.remove(c), title: t('delete') }),
+            Button.component({
+              className: 'Button Button--icon Button--flat',
+              icon: 'fas fa-trash',
+              onclick: () => this.remove(c),
+              title: t('delete'),
+            }),
           ])
         : c.isPublic
-        ? m('div.RpTile-shared', t('shared'))
-        : null,
+          ? m('div.RpTile-shared', t('shared'))
+          : null,
     ]);
   }
 }

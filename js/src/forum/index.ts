@@ -52,10 +52,7 @@ app.initializers.add('ernestdefoe-roleplay', () => {
     );
     items.add(
       'rp-deck',
-      LinkButton.component(
-        { href: app.route('rp.deck'), icon: 'fas fa-layer-group' },
-        app.translator.trans('ernestdefoe-roleplay.forum.my_deck')
-      ),
+      LinkButton.component({ href: app.route('rp.deck'), icon: 'fas fa-layer-group' }, app.translator.trans('ernestdefoe-roleplay.forum.my_deck')),
       49
     );
   });
