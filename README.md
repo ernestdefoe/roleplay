@@ -35,7 +35,7 @@ This is where Role-Play goes further than any other Flarum RP add-on. Build a **
 
 ## The deck builder
 
-At **`/deck`** ("My Deck" in the account menu) each member crafts cards — **abilities, items, spells and enemies** — each with dice formulas the game engine actually rolls:
+At **`/roleplay/deck`** ("My Deck" in the account menu) each member crafts cards — **abilities, items, spells and enemies** — each with dice formulas the game engine actually rolls:
 
 - **Attack roll** (e.g. `1d20+5`) — checked against the target's defense
 - **Damage roll** (e.g. `3d6`) — applied on a hit, **doubled on a natural-max crit**

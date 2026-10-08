@@ -8,6 +8,7 @@
 
 use Carbon\Carbon;
 use Ernestdefoe\Roleplay\Api;
+use Ernestdefoe\Roleplay\Forum\RedirectOldDeckPath;
 use Ernestdefoe\Roleplay\Models;
 use Ernestdefoe\Roleplay\PostCharacters;
 use Flarum\Api\Resource\PostResource;
@@ -22,7 +23,17 @@ return [
         ->jsDirectory(__DIR__.'/js/dist/forum')
         ->css(__DIR__.'/less/forum.less')
         ->route('/characters', 'rp.characters')
-        ->route('/deck', 'rp.deck'),
+        // Not /deck: Flarum 2.0 ships flarum/deck there, and two routes on one
+        // path 500 every request.
+        ->route('/roleplay/deck', 'rp.deck'),
+
+    // Keep old /deck links working, but only where flarum/deck is not
+    // installed to own that path.
+    (new Extend\Conditional())
+        ->whenExtensionDisabled('flarum-deck', fn () => [
+            (new Extend\Routes('forum'))
+                ->get('/deck', 'rp.deck.legacy', RedirectOldDeckPath::class),
+        ]),
 
     (new Extend\Frontend('admin'))
         ->js(__DIR__.'/js/dist/admin.js'),

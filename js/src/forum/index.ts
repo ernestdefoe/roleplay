@@ -37,7 +37,7 @@ function combatTracker(): any {
 app.initializers.add('ernestdefoe-roleplay', () => {
   // The pages are chunks fetched on first visit, not part of every page.
   app.routes['rp.characters'] = { path: '/characters', component: () => import('./components/CharactersPage') } as any;
-  app.routes['rp.deck'] = { path: '/deck', component: () => import('./components/DeckPage') } as any;
+  app.routes['rp.deck'] = { path: '/roleplay/deck', component: () => import('./components/DeckPage') } as any;
 
   // "My Characters" + "My Deck" entries in the account dropdown.
   extend(SessionDropdown.prototype, 'items', function (items: any) {

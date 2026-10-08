@@ -41,7 +41,8 @@
         "flarum/phpstan": "^2.0",
         "flarum/testing": "^2.0",
         "flarum/tags": "^2.0",
-        "pusher/pusher-php-server": "^7.2"
+        "pusher/pusher-php-server": "^7.2",
+        "flarum/deck": "2.x-dev"
     },
     "scripts": {
         "test": [
@@ -58,5 +59,11 @@
         "analyse:phpstan": "Run static analysis"
     },
     "minimum-stability": "beta",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/flarum/deck"
+        }
+    ]
 }
