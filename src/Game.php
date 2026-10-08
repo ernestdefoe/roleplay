@@ -124,7 +124,9 @@ class Game
     public static function activeId(Encounter $enc): ?int
     {
         $order = $enc->order ?: [];
+        // Unset on a model created this request: the column default is 0.
+        $index = (int) $enc->turn_index;
 
-        return isset($order[$enc->turn_index]) ? (int) $order[$enc->turn_index] : null;
+        return isset($order[$index]) ? (int) $order[$index] : null;
     }
 }

@@ -53,7 +53,7 @@ class JoinEncounterController implements RequestHandlerInterface
         }
 
         $sheet = Sheet::where('character_id', $character->id)->first();
-        $attrs = $sheet?->attributes ?: [];
+        $attrs = $sheet?->getAttribute('attributes') ?: [];
         $maxHp = (int) ($sheet?->max_hp ?: Input::clampInt(Arr::get($body, 'maxHp'), 1, 9999) ?? 20);
 
         $c = new Combatant();

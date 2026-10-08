@@ -28,7 +28,9 @@ class RpGate
         }
 
         try {
-            return $discussion->tags()->whereIn('slug', $slugs)->exists();
+            // The relation flarum/tags adds to Discussion, spelled out: it is
+            // registered at runtime, so nothing else can type-check the call.
+            return $discussion->belongsToMany(\Flarum\Tags\Tag::class, 'discussion_tag')->whereIn('slug', $slugs)->exists();
         } catch (\Throwable) {
             // flarum/tags not installed but tags configured → nothing qualifies.
             return false;

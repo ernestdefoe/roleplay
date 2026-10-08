@@ -7,6 +7,7 @@ use Ernestdefoe\Roleplay\Models\Card;
 use Ernestdefoe\Roleplay\Models\Character;
 use Ernestdefoe\Roleplay\Models\Combatant;
 use Ernestdefoe\Roleplay\Models\Encounter;
+use Flarum\User\User;
 
 /** Shapes models into the plain JSON the forum frontend consumes. */
 class Present
@@ -69,7 +70,7 @@ class Present
     }
 
     /** The full live tracker: the encounter, its combatants (initiative order) and whose turn it is. */
-    public static function encounter(Encounter $enc, $actor = null): array
+    public static function encounter(Encounter $enc, ?User $actor = null): array
     {
         // Eager-load characters: combatant() reads $c->character, so without this
         // an N-combatant tracker fires N+1 queries on every state refresh.

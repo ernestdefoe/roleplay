@@ -9,6 +9,7 @@ use Flarum\Api\Resource\PostResource;
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\User\User;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -72,7 +73,7 @@ class EncounterActionController implements RequestHandlerInterface
      * fight becomes a permanent part of the thread. Non-fatal — a formatter
      * hiccup must never stop the encounter from ending.
      */
-    private function postSummary(Encounter $enc, $actor, ServerRequestInterface $request): void
+    private function postSummary(Encounter $enc, User $actor, ServerRequestInterface $request): void
     {
         try {
             $combatants = $enc->combatants()->with('character')->orderByDesc('initiative')->get();
@@ -80,7 +81,7 @@ class EncounterActionController implements RequestHandlerInterface
             $down = [];
             foreach ($combatants as $c) {
                 $name = $c->character->name ?? $c->name;
-                if ($c->status === 'down' || (int) $c->hp <= 0) {
+                if ($c->is_down || (int) $c->hp <= 0) {
                     $down[] = $name;
                 } else {
                     $standing[] = $name . ' (' . max(0, (int) $c->hp) . '/' . (int) $c->max_hp . ' HP)';
