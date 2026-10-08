@@ -55,7 +55,7 @@ class Game
             'amount' => 0,
             'targetHp' => $target?->hp,
             'targetMaxHp' => $target?->max_hp,
-            'down' => (bool) ($target?->is_down),
+            'down' => (bool) $target?->is_down,
         ];
 
         if ($atk = self::roll($card->attack_expr)) {
