@@ -5,6 +5,7 @@ namespace Ernestdefoe\Roleplay\Api;
 use Ernestdefoe\Roleplay\Models\Character;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -16,6 +17,11 @@ use Psr\Http\Server\RequestHandlerInterface;
 /** POST /api/rp/characters (create) and PATCH /api/rp/characters/{id} (update). */
 class SaveCharacterController implements RequestHandlerInterface
 {
+    public function __construct(
+        private TranslatorInterface $translator,
+    ) {
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
@@ -26,7 +32,7 @@ class SaveCharacterController implements RequestHandlerInterface
 
         $name = trim((string) Arr::get($body, 'name', ''));
         if ($id === null && $name === '') {
-            throw new ValidationException(['name' => 'A character name is required.']);
+            throw new ValidationException(['name' => $this->translator->trans('ernestdefoe-roleplay.api.character_name_required')]);
         }
 
         if ($id !== null) {

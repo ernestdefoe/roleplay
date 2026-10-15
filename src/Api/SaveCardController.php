@@ -6,6 +6,7 @@ use Ernestdefoe\Roleplay\Game;
 use Ernestdefoe\Roleplay\Models\Card;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -17,6 +18,11 @@ class SaveCardController implements RequestHandlerInterface
 {
     private const TYPES = ['ability', 'item', 'spell', 'enemy'];
 
+    public function __construct(
+        private TranslatorInterface $translator,
+    ) {
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
@@ -27,7 +33,7 @@ class SaveCardController implements RequestHandlerInterface
 
         $name = trim((string) Arr::get($body, 'name', ''));
         if ($id === null && $name === '') {
-            throw new ValidationException(['name' => 'A card name is required.']);
+            throw new ValidationException(['name' => $this->translator->trans('ernestdefoe-roleplay.api.card_name_required')]);
         }
 
         // Dice expressions must parse (Game::roll returns null on anything invalid).
@@ -35,7 +41,7 @@ class SaveCardController implements RequestHandlerInterface
             if (Arr::has($body, $field)) {
                 $expr = trim((string) Arr::get($body, $field, ''));
                 if ($expr !== '' && Game::roll($expr) === null) {
-                    throw new ValidationException([$field => 'Not a valid dice expression (e.g. "2d6+1").']);
+                    throw new ValidationException([$field => $this->translator->trans('ernestdefoe-roleplay.api.bad_dice')]);
                 }
             }
         }

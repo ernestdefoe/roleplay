@@ -290,7 +290,7 @@ export default class CombatTracker extends Component<{ discussionId: number }> {
           'div.RpCombatant-hpbar',
           m('span.RpCombatant-hpfill', { style: { width: pct + '%', background: c.team === 'foe' ? '#dc2626' : '#16a34a' } })
         ),
-        m('div.RpCombatant-hptext', c.isDown ? t('down') : `${c.hp}/${c.maxHp} HP`),
+        m('div.RpCombatant-hptext', c.isDown ? t('down') : t('hp_value', { hp: c.hp, max: c.maxHp })),
       ]),
       e.isGm && e.status === 'setup'
         ? Button.component({ className: 'Button Button--icon Button--flat RpCombatant-rm', icon: 'fas fa-xmark', onclick: () => this.remove(c) })

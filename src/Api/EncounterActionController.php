@@ -9,6 +9,7 @@ use Flarum\Api\Resource\PostResource;
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Flarum\User\User;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
@@ -22,8 +23,11 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class EncounterActionController implements RequestHandlerInterface
 {
-    public function __construct(private Touch $touch, private JsonApi $api)
-    {
+    public function __construct(
+        private Touch $touch,
+        private JsonApi $api,
+        private TranslatorInterface $translator,
+    ) {
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -41,14 +45,14 @@ class EncounterActionController implements RequestHandlerInterface
         switch (Arr::get($request->getQueryParams(), 'action')) {
             case 'start':
                 if ($enc->combatants()->count() < 1) {
-                    throw new ValidationException(['combatants' => 'Add at least one combatant before starting.']);
+                    throw new ValidationException(['combatants' => $this->translator->trans('ernestdefoe-roleplay.api.no_combatants')]);
                 }
                 Game::start($enc);
                 break;
 
             case 'next':
                 if ($enc->status !== 'active') {
-                    throw new ValidationException(['status' => 'The encounter is not active.']);
+                    throw new ValidationException(['status' => $this->translator->trans('ernestdefoe-roleplay.api.not_active')]);
                 }
                 Game::nextTurn($enc);
                 break;
@@ -60,7 +64,7 @@ class EncounterActionController implements RequestHandlerInterface
                 break;
 
             default:
-                throw new ValidationException(['action' => 'Unknown encounter action.']);
+                throw new ValidationException(['action' => $this->translator->trans('ernestdefoe-roleplay.api.unknown_action')]);
         }
 
         $this->touch->encounter($enc);
@@ -84,18 +88,18 @@ class EncounterActionController implements RequestHandlerInterface
                 if ($c->is_down || (int) $c->hp <= 0) {
                     $down[] = $name;
                 } else {
-                    $standing[] = $name.' ('.max(0, (int) $c->hp).'/'.(int) $c->max_hp.' HP)';
+                    $standing[] = $this->translator->trans('ernestdefoe-roleplay.api.summary.hp', ['name' => $name, 'hp' => max(0, (int) $c->hp), 'max' => (int) $c->max_hp]);
                 }
             }
 
-            $title = $enc->name ?: 'The encounter';
+            $title = $enc->name ?: $this->translator->trans('ernestdefoe-roleplay.api.summary.untitled');
             $rounds = (int) $enc->round;
-            $parts = ['⚔️ '.$title.' has ended'.($rounds > 0 ? ' after '.$rounds.' round'.($rounds === 1 ? '' : 's') : '').'.'];
+            $parts = [$this->translator->trans('ernestdefoe-roleplay.api.summary.'.($rounds > 0 ? 'ended_after' : 'ended'), ['title' => $title, 'rounds' => $rounds])];
             if ($standing) {
-                $parts[] = 'Still standing: '.implode(', ', $standing);
+                $parts[] = $this->translator->trans('ernestdefoe-roleplay.api.summary.standing', ['names' => implode(', ', $standing)]);
             }
             if ($down) {
-                $parts[] = 'Defeated: '.implode(', ', $down);
+                $parts[] = $this->translator->trans('ernestdefoe-roleplay.api.summary.defeated', ['names' => implode(', ', $down)]);
             }
 
             $discussion = Discussion::whereVisibleTo($actor)->find($enc->discussion_id);

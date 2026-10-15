@@ -8,6 +8,7 @@ use Ernestdefoe\Roleplay\Models\Encounter;
 use Ernestdefoe\Roleplay\Models\Sheet;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -22,8 +23,10 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class JoinEncounterController implements RequestHandlerInterface
 {
-    public function __construct(private Touch $touch)
-    {
+    public function __construct(
+        private Touch $touch,
+        private TranslatorInterface $translator,
+    ) {
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -38,7 +41,7 @@ class JoinEncounterController implements RequestHandlerInterface
         Guard::discussion($actor, (int) $enc->discussion_id);
 
         if ($enc->status !== 'setup') {
-            throw new ValidationException(['status' => 'You can only join before the encounter starts.']);
+            throw new ValidationException(['status' => $this->translator->trans('ernestdefoe-roleplay.api.join_too_late')]);
         }
 
         $body = (array) $request->getParsedBody();

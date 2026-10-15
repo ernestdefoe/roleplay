@@ -8,6 +8,7 @@ use Ernestdefoe\Roleplay\Models\Combatant;
 use Ernestdefoe\Roleplay\Models\Encounter;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -22,8 +23,10 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class PlayCardController implements RequestHandlerInterface
 {
-    public function __construct(private Touch $touch)
-    {
+    public function __construct(
+        private Touch $touch,
+        private TranslatorInterface $translator,
+    ) {
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -37,7 +40,7 @@ class PlayCardController implements RequestHandlerInterface
         Guard::discussion($actor, (int) $enc->discussion_id);
 
         if ($enc->status !== 'active') {
-            throw new ValidationException(['status' => 'The encounter is not active.']);
+            throw new ValidationException(['status' => $this->translator->trans('ernestdefoe-roleplay.api.not_active')]);
         }
 
         $body = (array) $request->getParsedBody();
@@ -49,7 +52,7 @@ class PlayCardController implements RequestHandlerInterface
         $actor->assertPermission($isGm || ($ownsActor && $isActiveTurn));
 
         if ($actorC->is_down) {
-            throw new ValidationException(['actor' => 'A downed combatant cannot act.']);
+            throw new ValidationException(['actor' => $this->translator->trans('ernestdefoe-roleplay.api.downed')]);
         }
 
         $card = Card::where('id', (int) Arr::get($body, 'cardId'))

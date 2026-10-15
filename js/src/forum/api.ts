@@ -19,7 +19,7 @@ async function req(method: string, path: string, body?: any): Promise<any> {
     } catch {
       /* non-JSON error */
     }
-    throw new Error(detail || `Request failed (${res.status})`);
+    throw new Error(detail || app.translator.trans('ernestdefoe-roleplay.forum.request_failed', { status: res.status }, true));
   }
   return res.status === 204 ? null : res.json();
 }

@@ -8,6 +8,7 @@ use Ernestdefoe\Roleplay\Models\Combatant;
 use Ernestdefoe\Roleplay\Models\Encounter;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -21,6 +22,11 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class AddCombatantController implements RequestHandlerInterface
 {
+    public function __construct(
+        private TranslatorInterface $translator,
+    ) {
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
@@ -66,7 +72,7 @@ class AddCombatantController implements RequestHandlerInterface
         }
 
         if ($name === '') {
-            throw new ValidationException(['name' => 'A combatant name is required.']);
+            throw new ValidationException(['name' => $this->translator->trans('ernestdefoe-roleplay.api.combatant_name_required')]);
         }
 
         $c->name = mb_substr($name, 0, 80);

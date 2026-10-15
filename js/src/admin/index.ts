@@ -13,6 +13,6 @@ export default [
     type: 'text',
     label: t('tags_label'),
     help: t('tags_help'),
-    placeholder: 'role-play, in-character',
+    placeholder: app.translator.trans(`${K}.admin.tags_placeholder`, {}, true),
   })),
 ];
