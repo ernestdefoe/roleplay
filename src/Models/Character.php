@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Character extends AbstractModel
 {
     protected $table = 'rp_characters';
+    public $timestamps = true; // Flarum's AbstractModel turns them off; the table has them
     protected $casts = ['last_posted_at' => 'datetime', 'post_count' => 'integer'];
 
     /** @return BelongsTo<User, $this> */

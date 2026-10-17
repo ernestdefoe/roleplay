@@ -130,6 +130,21 @@ class RoleplayTest extends TestCase
     }
 
     #[Test]
+    public function what_the_api_creates_is_timestamped()
+    {
+        $encounter = $this->data($this->call('POST', '/api/rp/encounters', 2, ['discussionId' => 1]))['id'];
+        $character = $this->data($this->call('POST', '/api/rp/characters', 2, ['name' => 'Cass']))['id'];
+        $card = $this->data($this->call('POST', '/api/rp/cards', 2, ['name' => 'Feint']))['id'];
+        $combatant = $this->data($this->call('POST', "/api/rp/encounters/$encounter/combatants", 2, ['name' => 'Goblin']))['id'];
+
+        foreach (['rp_encounters' => $encounter, 'rp_characters' => $character, 'rp_cards' => $card, 'rp_combatants' => $combatant] as $table => $id) {
+            $row = $this->database()->table($table)->where('id', $id)->first();
+            $this->assertNotNull($row->created_at, "$table.created_at");
+            $this->assertNotNull($row->updated_at, "$table.updated_at");
+        }
+    }
+
+    #[Test]
     public function only_the_gm_runs_an_encounter_and_players_join_as_their_own_characters()
     {
         $id = $this->data($this->call('POST', '/api/rp/encounters', 2, ['discussionId' => 1]))['id'];

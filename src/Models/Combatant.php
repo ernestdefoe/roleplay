@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Combatant extends AbstractModel
 {
     protected $table = 'rp_combatants';
+    public $timestamps = true; // Flarum's AbstractModel turns them off; the table has them
     protected $casts = ['meta' => 'array', 'is_down' => 'boolean'];
 
     /** @return BelongsTo<Encounter, $this> */

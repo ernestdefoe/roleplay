@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Card extends AbstractModel
 {
     protected $table = 'rp_cards';
+    public $timestamps = true; // Flarum's AbstractModel turns them off; the table has them
     protected $casts = ['is_public' => 'boolean'];
 
     /** @return BelongsTo<User, $this> */

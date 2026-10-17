@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Encounter extends AbstractModel
 {
     protected $table = 'rp_encounters';
+    public $timestamps = true; // Flarum's AbstractModel turns them off; the table has them
     protected $casts = ['order' => 'array'];
 
     /** @return HasMany<Combatant, $this> */

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Sheet extends AbstractModel
 {
     protected $table = 'rp_sheets';
+    public $timestamps = true; // Flarum's AbstractModel turns them off; the table has them
     protected $casts = ['attributes' => 'array', 'equipped' => 'array'];
 
     /** @return BelongsTo<Character, $this> */
