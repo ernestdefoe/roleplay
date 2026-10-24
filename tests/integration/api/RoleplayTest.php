@@ -225,6 +225,32 @@ class RoleplayTest extends TestCase
     }
 
     #[Test]
+    public function damage_below_zero_never_heals_and_hp_never_passes_max()
+    {
+        $this->database()->table('rp_cards')->insert(['id' => 4, 'user_id' => 2, 'name' => 'Feeble poke', 'attack_expr' => '1d20+50', 'damage_expr' => '1d4-10', 'is_public' => 0]);
+        $id = $this->data($this->call('POST', '/api/rp/encounters', 2, ['discussionId' => 1]))['id'];
+        $aria = $this->data($this->call('POST', "/api/rp/encounters/$id/combatants", 2, ['name' => 'Aria']))['id'];
+        $goblin = $this->data($this->call('POST', "/api/rp/encounters/$id/combatants", 2, ['name' => 'Goblin', 'team' => 'foe', 'maxHp' => 10]))['id'];
+        $this->call('POST', "/api/rp/encounters/$id/start", 2);
+        $this->database()->table('rp_combatants')->where('id', $goblin)->update(['hp' => 6]);
+
+        $play = fn () => $this->data($this->call('POST', "/api/rp/encounters/$id/play", 2, ['actorCombatantId' => $aria, 'cardId' => 4, 'targetCombatantId' => $goblin]))['result'];
+
+        // 1d4-10 always totals below zero.
+        $result = $play();
+        $this->assertTrue($result['hit']);
+        $this->assertLessThan(0, $result['damage']['total']);
+        $this->assertSame(0, $result['amount'], 'Counts as 0 damage');
+        $this->assertSame(6, $result['targetHp'], 'Not healed');
+        $this->assertSame(6, (int) $this->database()->table('rp_combatants')->where('id', $goblin)->value('hp'));
+
+        // HP somehow above max (e.g. the GM lowered it) is pulled back to max, not kept.
+        $this->database()->table('rp_combatants')->where('id', $goblin)->update(['hp' => 15]);
+        $this->assertSame(10, $play()['targetHp']);
+        $this->assertSame(10, (int) $this->database()->table('rp_combatants')->where('id', $goblin)->value('hp'));
+    }
+
+    #[Test]
     public function a_post_is_written_as_your_own_character_only()
     {
         $reply = fn (int $character) => $this->call('POST', '/api/posts', 2, ['data' => ['type' => 'posts', 'attributes' => ['content' => 'In character', 'characterId' => $character], 'relationships' => ['discussion' => ['data' => ['type' => 'discussions', 'id' => '1']]]]]);

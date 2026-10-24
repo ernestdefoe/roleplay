@@ -69,11 +69,13 @@ class Game
         }
 
         if ($res['hit'] && $card->damage_expr && $dmg = self::roll($card->damage_expr)) {
-            $amount = $dmg['total'] * ($res['crit'] ? 2 : 1);
+            // A modifier can take the total below zero ("1d4-5"): that is a
+            // miss for 0, never a heal.
+            $amount = max(0, $dmg['total']) * ($res['crit'] ? 2 : 1);
             $res['damage'] = $dmg;
             $res['amount'] = $amount;
             if ($target) {
-                $target->hp = max(0, (int) $target->hp - $amount);
+                $target->hp = min((int) $target->max_hp, max(0, (int) $target->hp - $amount));
                 $target->is_down = $target->hp <= 0;
                 $res['targetHp'] = $target->hp;
                 $res['down'] = $target->is_down;
