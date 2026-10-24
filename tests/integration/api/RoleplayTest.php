@@ -130,6 +130,44 @@ class RoleplayTest extends TestCase
     }
 
     #[Test]
+    public function players_join_encounters_only_in_role_play_tags()
+    {
+        $this->setting('ernestdefoe-roleplay.tags', 'rp');
+        $this->database()->table('rp_encounters')->insert([
+            ['id' => 7, 'discussion_id' => 1, 'gm_user_id' => 2, 'status' => 'setup'],
+            ['id' => 8, 'discussion_id' => 3, 'gm_user_id' => 2, 'status' => 'setup'],
+        ]);
+
+        $outside = $this->call('POST', '/api/rp/encounters/8/join', 3, ['characterId' => 2]);
+        $this->assertSame(422, $outside->getStatusCode());
+        $this->assertStringContainsString('ernestdefoe-roleplay.api.not_rp_discussion', (string) $outside->getBody(), 'The translated reason (the test catalogue leaves it untranslated)');
+        $this->assertSame(0, $this->database()->table('rp_combatants')->where('encounter_id', 8)->count());
+
+        $inside = $this->call('POST', '/api/rp/encounters/7/join', 3, ['characterId' => 2]);
+        $this->assertSame(200, $inside->getStatusCode(), (string) $inside->getBody());
+        $this->assertSame('Bram', $this->data($inside)['name']);
+    }
+
+    #[Test]
+    public function posts_are_written_in_character_only_in_role_play_tags()
+    {
+        $this->setting('ernestdefoe-roleplay.tags', 'rp');
+        $reply = fn (int $discussion, ?int $character) => $this->call('POST', '/api/posts', 2, ['data' => ['type' => 'posts', 'attributes' => array_filter(['content' => 'Hello', 'characterId' => $character]), 'relationships' => ['discussion' => ['data' => ['type' => 'discussions', 'id' => (string) $discussion]]]]]);
+
+        $outside = $reply(3, 1);
+        $this->assertSame(422, $outside->getStatusCode());
+        $this->assertStringContainsString('ernestdefoe-roleplay.api.not_rp_discussion', (string) $outside->getBody(), 'The translated reason (the test catalogue leaves it untranslated)');
+        $this->assertSame(0, $this->database()->table('rp_post_character')->count());
+        $this->assertSame(0, (int) $this->database()->table('rp_characters')->where('id', 1)->value('post_count'));
+
+        $this->assertSame(201, $reply(3, null)->getStatusCode(), 'An ordinary reply there is untouched');
+
+        $inside = $reply(1, 1);
+        $this->assertSame(201, $inside->getStatusCode(), (string) $inside->getBody());
+        $this->assertSame('Aria', $this->data($inside)['attributes']['rpCharacter']['name'] ?? null);
+    }
+
+    #[Test]
     public function what_the_api_creates_is_timestamped()
     {
         $encounter = $this->data($this->call('POST', '/api/rp/encounters', 2, ['discussionId' => 1]))['id'];

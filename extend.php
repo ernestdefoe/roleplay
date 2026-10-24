@@ -11,9 +11,12 @@ use Ernestdefoe\Roleplay\Api;
 use Ernestdefoe\Roleplay\Forum\RedirectOldDeckPath;
 use Ernestdefoe\Roleplay\Models;
 use Ernestdefoe\Roleplay\PostCharacters;
+use Ernestdefoe\Roleplay\RpGate;
 use Flarum\Api\Resource\PostResource;
 use Flarum\Api\Schema;
 use Flarum\Extend;
+use Flarum\Foundation\ValidationException;
+use Flarum\Locale\TranslatorInterface;
 use Flarum\Post\CommentPost;
 use Flarum\Post\Post;
 
@@ -100,6 +103,11 @@ return [
                     $cid = (int) $value;
                     if ($cid <= 0 || $post->exists || ! $post instanceof CommentPost) {
                         return;
+                    }
+                    // Only where role-play is enabled (admin-configured tags), as the
+                    // composer shows. The discussion relationship is set before this.
+                    if ($post->discussion && ! RpGate::isRpDiscussion($post->discussion)) {
+                        throw new ValidationException(['characterId' => resolve(TranslatorInterface::class)->trans('ernestdefoe-roleplay.api.not_rp_discussion')]);
                     }
                     $character = Models\Character::where('user_id', $context->getActor()->id)
                         ->where('status', 'approved')

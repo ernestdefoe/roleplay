@@ -27,6 +27,11 @@ class RpGate
             return true;
         }
 
+        // Usually already loaded with the discussion: no query at all then.
+        if ($discussion->relationLoaded('tags')) {
+            return $discussion->getRelation('tags')->whereIn('slug', $slugs)->isNotEmpty();
+        }
+
         try {
             // The relation flarum/tags adds to Discussion, spelled out: it is
             // registered at runtime, so nothing else can type-check the call.

@@ -6,6 +6,7 @@ use Ernestdefoe\Roleplay\Models\Character;
 use Ernestdefoe\Roleplay\Models\Combatant;
 use Ernestdefoe\Roleplay\Models\Encounter;
 use Ernestdefoe\Roleplay\Models\Sheet;
+use Ernestdefoe\Roleplay\RpGate;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
 use Flarum\Locale\TranslatorInterface;
@@ -38,7 +39,12 @@ class JoinEncounterController implements RequestHandlerInterface
 
         // Must be able to see the discussion the encounter lives in — otherwise a
         // member could join a private setup-phase game just by guessing its id.
-        Guard::discussion($actor, (int) $enc->discussion_id);
+        $discussion = Guard::discussion($actor, (int) $enc->discussion_id);
+
+        // Only where role-play is enabled (admin-configured tags), as the UI shows.
+        if (! RpGate::isRpDiscussion($discussion)) {
+            throw new ValidationException(['discussion' => $this->translator->trans('ernestdefoe-roleplay.api.not_rp_discussion')]);
+        }
 
         if ($enc->status !== 'setup') {
             throw new ValidationException(['status' => $this->translator->trans('ernestdefoe-roleplay.api.join_too_late')]);
