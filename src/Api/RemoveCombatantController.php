@@ -2,6 +2,7 @@
 
 namespace Ernestdefoe\Roleplay\Api;
 
+use Ernestdefoe\Roleplay\Game;
 use Ernestdefoe\Roleplay\Models\Combatant;
 use Flarum\Http\RequestUtil;
 use Illuminate\Support\Arr;
@@ -10,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-/** DELETE /api/rp/combatants/{id} — the GM removes a fighter (setup only). */
+/** DELETE /api/rp/combatants/{id} — the GM removes a fighter (also mid-fight: it leaves the turn order). */
 class RemoveCombatantController implements RequestHandlerInterface
 {
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -27,6 +28,7 @@ class RemoveCombatantController implements RequestHandlerInterface
         $actor->assertPermission($c->encounter && (int) $c->encounter->gm_user_id === (int) $actor->id);
 
         $c->delete();
+        Game::dropFromOrder($c->encounter, (int) $c->id);
 
         return new EmptyResponse(204);
     }

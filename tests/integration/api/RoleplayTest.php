@@ -251,6 +251,60 @@ class RoleplayTest extends TestCase
     }
 
     #[Test]
+    public function a_fighter_removed_mid_fight_leaves_the_turn_order()
+    {
+        $id = $this->data($this->call('POST', '/api/rp/encounters', 2, ['discussionId' => 1]))['id'];
+        foreach (['A', 'B', 'C'] as $name) {
+            $this->call('POST', "/api/rp/encounters/$id/combatants", 2, ['name' => $name]);
+        }
+        $enc = $this->data($this->call('POST', "/api/rp/encounters/$id/start", 2));
+        [$first, $second, $third] = $enc['order'];
+
+        // Remove the fighter whose turn it is: the turn passes to the next one in line.
+        $this->assertSame(204, $this->call('DELETE', "/api/rp/combatants/$first", 2)->getStatusCode());
+        $enc = $this->data($this->call('GET', '/api/rp/encounters', 2, [], ['discussionId' => 1]));
+        $this->assertSame([$second, $third], $enc['order']);
+        $this->assertSame($second, $enc['activeId']);
+
+        // Removing the last of a round on their turn starts the next round.
+        $this->call('POST', "/api/rp/encounters/$id/next", 2);
+        $this->call('DELETE', "/api/rp/combatants/$third", 2);
+        $enc = $this->data($this->call('GET', '/api/rp/encounters', 2, [], ['discussionId' => 1]));
+        $this->assertSame([$second], $enc['order']);
+        $this->assertSame($second, $enc['activeId']);
+        $this->assertSame(2, $enc['round']);
+
+        // Removing one earlier in the order keeps the turn on the same fighter.
+        $fourth = $this->data($this->call('POST', "/api/rp/encounters/$id/combatants", 2, ['name' => 'D']))['id'];
+        $this->database()->table('rp_encounters')->where('id', $id)->update(['order' => json_encode([$fourth, $second]), 'turn_index' => 1]);
+        $this->call('DELETE', "/api/rp/combatants/$fourth", 2);
+        $enc = $this->data($this->call('GET', '/api/rp/encounters', 2, [], ['discussionId' => 1]));
+        $this->assertSame([$second], $enc['order']);
+        $this->assertSame($second, $enc['activeId']);
+        $this->assertSame(2, $enc['round']);
+    }
+
+    #[Test]
+    public function the_next_turn_skips_the_fallen_and_waits_when_nobody_stands()
+    {
+        $id = $this->data($this->call('POST', '/api/rp/encounters', 2, ['discussionId' => 1]))['id'];
+        foreach (['A', 'B', 'C'] as $name) {
+            $this->call('POST', "/api/rp/encounters/$id/combatants", 2, ['name' => $name]);
+        }
+        [$first, $second, $third] = $this->data($this->call('POST', "/api/rp/encounters/$id/start", 2))['order'];
+
+        $this->database()->table('rp_combatants')->where('id', $second)->update(['is_down' => true]);
+        $enc = $this->data($this->call('POST', "/api/rp/encounters/$id/next", 2));
+        $this->assertSame($third, $enc['activeId'], 'The fallen fighter is skipped');
+        $this->assertSame(1, $enc['round']);
+
+        $this->database()->table('rp_combatants')->whereIn('id', [$first, $third])->update(['is_down' => true]);
+        $enc = $this->data($this->call('POST', "/api/rp/encounters/$id/next", 2));
+        $this->assertSame($third, $enc['activeId'], 'Nobody left to act: the turn stays put');
+        $this->assertSame(1, $enc['round'], 'and no empty rounds pile up');
+    }
+
+    #[Test]
     public function a_post_is_written_as_your_own_character_only()
     {
         $reply = fn (int $character) => $this->call('POST', '/api/posts', 2, ['data' => ['type' => 'posts', 'attributes' => ['content' => 'In character', 'characterId' => $character], 'relationships' => ['discussion' => ['data' => ['type' => 'discussions', 'id' => '1']]]]]);

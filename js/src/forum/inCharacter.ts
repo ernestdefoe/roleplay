@@ -19,19 +19,6 @@ function badge(rp: any) {
 }
 
 /**
- * "Played by {user}", translatable, without calling app.translator.trans().
- * trans() with a param THROWS inside the PostUser override below — Flarum treats
- * the param as a user model and calls .displayName() on it (confirmed: a string
- * param -> "displayName is not a function", which blanks the post header). So we
- * read the raw locale template and interpolate the (already display) name by hand.
- */
-function playedByLabel(user: string): string {
-  const entry = (app.translator as any).translations?.['ernestdefoe-roleplay.forum.played_by'];
-  const tpl = (typeof entry === 'string' ? entry : entry?.message) || 'Played by {user}';
-  return tpl.replace('{user}', user);
-}
-
-/**
  * In-character display: when a post was authored as a character, swap the
  * author's avatar and name for the character's — but keep a visible "played by
  * {user}" line so the real author is never hidden (trust + moderation).
@@ -47,12 +34,13 @@ export default function inCharacter() {
     const rp = rpChar(post);
     if (!rp) return original();
 
+    // Pass the user MODEL: the translator turns a `user` param into
+    // {username} (a string there throws on .displayName()).
     const user = typeof post.user === 'function' ? post.user() : null;
-    const by = user && typeof user.displayName === 'function' ? user.displayName() : '';
     return m('h3.PostUser-name.RpPostUser', [
       m('i.icon.fas.fa-theater-masks'),
       m('span.RpPostUser-name', { style: { color: rp.color || '#7c3aed' } }, rp.name),
-      by ? m('span.RpPostUser-by', playedByLabel(by)) : null,
+      user ? m('span.RpPostUser-by', app.translator.trans('ernestdefoe-roleplay.forum.played_by', { user })) : null,
     ]);
   });
 }

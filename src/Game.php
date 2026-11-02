@@ -88,37 +88,69 @@ class Game
     /** Roll initiative (1d20 + agility) for every combatant, set the order and activate. */
     public static function start(Encounter $enc): void
     {
-        $combatants = $enc->combatants()->get();
-        foreach ($combatants as $c) {
-            $init = self::roll('1d20');
-            $c->initiative = ($init['total'] ?? 0) + (int) ($c->meta['agility'] ?? 0);
-            $c->save();
-        }
-        $enc->order = $combatants->sortByDesc('initiative')->pluck('id')->values()->all();
-        $enc->status = 'active';
-        $enc->round = 1;
-        $enc->turn_index = 0;
-        $enc->save();
+        // One save per combatant is bounded by the fight's size and runs once,
+        // when the GM starts it; the transaction makes the rolls and the order
+        // land together.
+        $enc->getConnection()->transaction(function () use ($enc) {
+            $combatants = $enc->combatants()->get();
+            foreach ($combatants as $c) {
+                $init = self::roll('1d20');
+                $c->initiative = ($init['total'] ?? 0) + (int) ($c->meta['agility'] ?? 0);
+                $c->save();
+            }
+            $enc->order = $combatants->sortByDesc('initiative')->pluck('id')->values()->all();
+            $enc->status = 'active';
+            $enc->round = 1;
+            $enc->turn_index = 0;
+            $enc->save();
+        });
     }
 
-    /** Advance to the next living combatant; wrapping the order starts a new round. */
+    /**
+     * Advance to the next living combatant; wrapping the order starts a new
+     * round. When nobody is left standing there is no next turn: the turn and
+     * round stay put until the GM ends the fight.
+     */
     public static function nextTurn(Encounter $enc): void
     {
         $order = $enc->order ?: [];
-        if (! $order) {
+        // Living fighters still in the encounter (a removed one is skipped too).
+        $alive = Combatant::whereIn('id', $order)->where('is_down', false)->pluck('id')->map(fn ($v) => (int) $v)->all();
+        if (! $alive) {
             return;
         }
-        $down = Combatant::whereIn('id', $order)->where('is_down', true)->pluck('id')->map(fn ($v) => (int) $v)->all();
-        for ($i = 0; $i < count($order); $i++) {
+        do {
             $enc->turn_index++;
             if ($enc->turn_index >= count($order)) {
                 $enc->turn_index = 0;
                 $enc->round++;
             }
-            if (! in_array((int) $order[$enc->turn_index], $down, true)) {
-                break;
+        } while (! in_array((int) $order[$enc->turn_index], $alive, true));
+        $enc->save();
+    }
+
+    /** Take a removed combatant out of the turn order, keeping the turn on the same fighter (or the next one). */
+    public static function dropFromOrder(Encounter $enc, int $combatantId): void
+    {
+        $order = array_map('intval', $enc->order ?: []);
+        $at = array_search($combatantId, $order, true);
+        if ($at === false) {
+            return;
+        }
+        array_splice($order, $at, 1);
+        $index = (int) $enc->turn_index;
+        if ($at < $index) {
+            $index--;
+        }
+        if ($index >= count($order)) {
+            // The last fighter of the round left on their turn: the next round begins.
+            $index = 0;
+            if ($order && $enc->status === 'active') {
+                $enc->round++;
             }
         }
+        $enc->order = $order;
+        $enc->turn_index = $index;
         $enc->save();
     }
 
