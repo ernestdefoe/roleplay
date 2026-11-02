@@ -42,7 +42,7 @@
         "flarum/testing": "^2.0",
         "flarum/tags": "^2.0",
         "pusher/pusher-php-server": "^7.2",
-        "flarum/deck": "2.x-dev"
+        "flarum/deck": "^2.0"
     },
     "scripts": {
         "test": [
